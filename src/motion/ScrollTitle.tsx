@@ -3,6 +3,7 @@ import { Box, type SxProps, type Theme } from '@mui/material';
 import { colors, fonts } from '../theme/tokens';
 import { clamp, lerp, reducedMotion } from './engine';
 import { useFrame } from './useFrame';
+import { useFitText } from './useFitText';
 
 type ScrollTitleProps = {
   lines: string[];
@@ -35,6 +36,7 @@ export function ScrollTitle({ lines, id, component = 'h2', variant = 'h2', measu
   const ruleRef = useRef<HTMLSpanElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
   const reduced = reducedMotion();
+  useFitText(root, lines);
 
   useFrame(({ viewport }) => {
     const el = root.current;

@@ -5,8 +5,11 @@
  * - Pointer and scroll velocity are smoothed here once, so every effect
  *   feels like part of the same physical system.
  * - The loop only runs while something is subscribed and the tab is visible.
- * - With prefers-reduced-motion, subscribers are not called at all.
+ * - With reduced motion (system setting or the site's Motion toggle),
+ *   subscribers are not called at all.
  */
+
+import { isMotionReduced } from './preference';
 
 export type FrameState = {
   /** Current scroll position (px). */
@@ -42,8 +45,7 @@ const state: FrameState = {
   time: 0,
 };
 
-export const reducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const reducedMotion = isMotionReduced;
 
 /** Frame-rate independent exponential smoothing factor. */
 export const damp = (rate: number, dt: number) => 1 - Math.exp(-rate * (dt / 1000));

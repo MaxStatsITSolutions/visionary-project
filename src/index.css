@@ -200,22 +200,22 @@ svg {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0s !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0s !important;
-  }
-  html {
-    scroll-behavior: auto;
-  }
-  .vz-line > span,
-  .vz-reveal {
-    transform: none;
-    opacity: 1;
-  }
+/* Reduced motion: set on <html> from the OS preference or the Motion toggle
+   (src/motion/preference.ts), so visitors can override their system. */
+html.vz-reduced {
+  scroll-behavior: auto;
+}
+html.vz-reduced *,
+html.vz-reduced *::before,
+html.vz-reduced *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+}
+html.vz-reduced .vz-line > span,
+html.vz-reduced .vz-reveal {
+  transform: none;
+  opacity: 1;
 }

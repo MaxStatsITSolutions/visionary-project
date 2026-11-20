@@ -1,4 +1,4 @@
-﻿import { useCallback, useState } from 'react';
+﻿import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import type { NavigableScreen, Screen } from './types/navigation';
 import { useAppDispatch, useAppSelector } from './store/hooks';
@@ -11,6 +11,8 @@ import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import { IntroContext } from './motion/IntroContext';
 import { Preloader } from './motion/Preloader';
 import { Cursor } from './motion/Cursor';
+import { MotionNotice } from './motion/MotionToggle';
+import { MOTION_EVENT } from './motion/preference';
 import { colors } from './theme/tokens';
 
 const TITLES: Record<Screen, string> = {
@@ -31,6 +33,15 @@ export default function App() {
   const [introDone, setIntroDone] = useState(false);
   const finishIntro = useCallback(() => setIntroDone(true), []);
 
+  // Motion toggled (or the OS setting changed): remount the page so every
+  // effect re-reads the preference. The preloader only runs on first load.
+  const [motionKey, setMotionKey] = useState(0);
+  useEffect(() => {
+    const onChange = () => setMotionKey((k) => k + 1);
+    window.addEventListener(MOTION_EVENT, onChange);
+    return () => window.removeEventListener(MOTION_EVENT, onChange);
+  }, []);
+
   const navigate = useCallback(
     (screen: NavigableScreen) => {
       dispatch(navigateTo(screen));
@@ -42,7 +53,9 @@ export default function App() {
 
   return (
     <IntroContext.Provider value={introDone}>
-      <Preloader onDone={finishIntro} />
+      <Fragment key={motionKey}>
+      {motionKey === 0 && <Preloader onDone={finishIntro} />}
+      <MotionNotice />
       <Cursor />
       <SkipLink />
       <AppHeader current={current} onNavigate={navigate} />
@@ -68,6 +81,7 @@ export default function App() {
       <Box sx={{ position: { md: 'sticky' }, bottom: 0, zIndex: 0 }}>
         <AppFooter onNavigate={navigate} />
       </Box>
+      </Fragment>
     </IntroContext.Provider>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Button, ButtonBase, Drawer, IconButton, Typography } from '@mui/material';
 import type { Navigate, NavigableScreen, Screen } from '../../types/navigation';
 import { colors, fonts, layout, motion, width } from '../../theme/tokens';
+import { MotionToggle } from '../../motion/MotionToggle';
 
 const NAV: { screen: NavigableScreen; label: string }[] = [
   { screen: 'explore', label: 'Explore' },
@@ -118,6 +119,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+          <MotionToggle sx={{ display: { xs: 'none', lg: 'inline-flex' } }} />
           <Button variant="text" color="inherit" onClick={() => go('auth')} sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
             Sign in
           </Button>
@@ -172,6 +174,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
           <Button variant="contained" size="large" onClick={() => go('studio')} sx={{ mt: 4 }}>
             Start a project
           </Button>
+          <MotionToggle sx={{ justifySelf: 'start' }} />
         </Box>
       </Drawer>
     </Box>

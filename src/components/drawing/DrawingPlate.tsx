@@ -7,6 +7,7 @@ import { InteriorImage } from '../common/InteriorImage';
 import { useFrame } from '../../motion/useFrame';
 import { clamp, damp, reducedMotion } from '../../motion/engine';
 import { useScramble } from '../../motion/useScramble';
+import { useInView } from '../../hooks/useInView';
 import { ALL_LAYERS, type Layers, type Proposal } from './layers';
 
 
@@ -31,9 +32,6 @@ const d = (seconds: number, duration?: number) =>
 
 const stroke = { fill: 'none', stroke: colors.ink, strokeWidth: 1.25, vectorEffect: 'non-scaling-stroke' as const };
 
-/** Advance of one IBM Plex Mono glyph at 22 units + 1.5 letter-spacing. */
-const CHAR_W = 14.7;
-
 /** Scalloped "revision cloud" around a rectangle, drawn clockwise so every arc bulges outward. */
 function cloudPath(x0: number, y0: number, x1: number, y1: number, r = 9) {
   const edge = (len: number) => {
@@ -53,6 +51,41 @@ function cloudPath(x0: number, y0: number, x1: number, y1: number, r = 9) {
 function NoteLabel({ text, x, y, delay, order }: { text: string; x: number; y: number; delay: number; order: number }) {
   const ref = useScramble<SVGTextElement>(text, { delay: order * 80, duration: 700 });
   return <text ref={ref} className="vz-pop vz-label" x={x} y={y} style={d(delay)} />;
+}
+
+/** One row of the keynote legend shown under small plates. */
+function KeynoteRow({ id, text, changedRev }: { id: string; text: string; changedRev: string | null }) {
+  const body = text.startsWith(id) ? text.slice(id.length).trim() : text;
+  const ref = useScramble<HTMLSpanElement>(body, { duration: 600 });
+  return (
+    <Box
+      component="li"
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '36px 1fr auto',
+        alignItems: 'center',
+        gap: 1,
+        py: 0.9,
+        borderBottom: `1px solid ${colors.line}`,
+        fontFamily: fonts.mono,
+        fontSize: '0.72rem',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+      }}
+    >
+      <Box component="span" sx={{ fontWeight: 500, color: colors.copperDeep }}>
+        {id}
+      </Box>
+      <span ref={ref} />
+      {changedRev ? (
+        <Box component="span" key={changedRev} sx={{ border: `1px solid ${colors.copper}`, px: 0.75, color: colors.copperDeep, animation: 'vz-fade 500ms var(--ease) both' }}>
+          Δ {changedRev}
+        </Box>
+      ) : (
+        <span />
+      )}
+    </Box>
+  );
 }
 
 function LensLabel({ text }: { text: string }) {
@@ -75,7 +108,25 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
   const holdTimer = useRef(0);
   const [plotted, setPlotted] = useState(false);
   const reduced = reducedMotion();
-  const lensReady = play && (plotted || reduced);
+  // Plot when the sheet is actually on screen (on phones it sits below the title).
+  const { ref: viewRef, inView } = useInView<HTMLDivElement>({ threshold: 0.35 });
+  const playing = play && inView;
+  const lensReady = playing && (plotted || reduced);
+
+  // Small plates (phones, narrow panels) show keynote tags + a legend instead of full notes.
+  const [plateW, setPlateW] = useState(0);
+  useEffect(() => {
+    const el = plateRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setPlateW(entry?.contentRect.width ?? 0));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const compact = plateW > 0 && plateW < 640;
+  const unit = plateW > 0 ? SHEET.w / plateW : 1; // drawing units per CSS pixel
+  const noteSize = compact ? 12 * unit : 22;
+  const dimSize = compact ? 10.5 * unit : 20;
+  const charW = noteSize * 0.6 + (compact ? 0 : 1.5);
 
   // Which notes changed with the last revision switch (derived during render).
   const [tracked, setTracked] = useState<{ notes: NoteTexts; changed: NoteId[]; rev: string; key: number }>({
@@ -90,10 +141,10 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
   }
 
   useEffect(() => {
-    if (!play || reduced) return;
+    if (!playing || reduced) return;
     const t = window.setTimeout(() => setPlotted(true), LENS_AT);
     return () => window.clearTimeout(t);
-  }, [play, reduced]);
+  }, [playing, reduced]);
 
   const lensRadius = (w: number) => Math.max(56, Math.min(200, w * 0.13));
   /** Radius that covers the whole plate from the lens centre: the iris fully open. */
@@ -183,9 +234,10 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
   const layer = (on: boolean): CSSProperties => ({ opacity: on ? 1 : 0, transition: 'opacity 400ms' });
 
   return (
+    <Box ref={viewRef} sx={{ display: 'grid', gap: 1.5 }}>
     <Box
       ref={plateRef}
-      className={`vz-paper${play ? ' is-playing' : ''}`}
+      className={`vz-paper${playing ? ' is-playing' : ''}`}
       onPointerMove={onMove}
       onPointerDown={(e) => {
         onMove(e);
@@ -248,7 +300,7 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
               />
             ))}
             <circle className="vz-dot" cx={VP.x} cy={VP.y} r={7} fill={colors.copper} stroke="none" style={d(0.25)} />
-            <text className="vz-pop" x={VP.x + 16} y={VP.y - 14} fill={colors.copper} stroke="none" fontSize={20} fontFamily={fonts.mono} letterSpacing={2} style={d(0.4)}>
+            <text className="vz-pop" x={VP.x + 16} y={VP.y - 14} fill={colors.copper} stroke="none" fontSize={dimSize} fontFamily={fonts.mono} letterSpacing={2} style={d(0.4)}>
               VP
             </text>
           </g>
@@ -302,10 +354,12 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
           </g>
 
           {/* Dimensions */}
-          <g fontFamily={fonts.mono} fontSize={20} letterSpacing={2}>
-            {DIMENSIONS.map((dim, i) => {
+          <g fontFamily={fonts.mono} fontSize={dimSize} letterSpacing={compact ? 0 : 2}>
+            {/* Small plates keep the two main dimensions, labelled under the line, clear of the keynote tags. */}
+            {DIMENSIONS.filter((dim) => !compact || dim.id !== 'window').map((dim, i) => {
               const delay = 2.6 + i * 0.2;
-              const mid = dim.labelAt;
+              // On small plates the height figure moves up, above the WL keynote.
+              const mid = compact && dim.axis === 'y' ? dim.from + (dim.to - dim.from) * 0.3 : dim.labelAt;
               if (dim.axis === 'x') {
                 return (
                   <g key={dim.id}>
@@ -316,7 +370,7 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
                       d={`M${dim.from} ${dim.at} H${dim.to} M${dim.from - 8} ${dim.at + 8} L${dim.from + 8} ${dim.at - 8} M${dim.to - 8} ${dim.at + 8} L${dim.to + 8} ${dim.at - 8}`}
                       style={d(delay, 0.8)}
                     />
-                    <text className="vz-pop vz-label" x={mid} y={dim.at - 10} textAnchor="middle" style={d(delay + 0.5)}>
+                    <text className="vz-pop vz-label" x={mid} y={compact ? dim.at + dimSize * 1.05 : dim.at - dimSize * 0.5} textAnchor="middle" style={d(delay + 0.5)}>
                       {dim.label}
                     </text>
                   </g>
@@ -333,9 +387,9 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
                   />
                   <text
                     className="vz-pop vz-label"
-                    x={dim.at + 14}
+                    x={dim.at + dimSize * 0.7}
                     y={mid}
-                    transform={`rotate(-90 ${dim.at + 14} ${mid})`}
+                    transform={`rotate(-90 ${dim.at + dimSize * 0.7} ${mid})`}
                     textAnchor="middle"
                     dominantBaseline="hanging"
                     style={d(delay + 0.5)}
@@ -349,14 +403,14 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
         </g>
 
         {/* Renovation notes */}
-        <g style={layer(layers.notes)} fontFamily={fonts.mono} fontSize={22} letterSpacing={1.5}>
+        <g style={layer(layers.notes)} fontFamily={fonts.mono} fontSize={noteSize} letterSpacing={compact ? 0 : 1.5}>
           {NOTES.map((n, i) => {
             const delay = 4.2 + i * 0.18;
             return (
               <g key={n.id}>
                 <path {...stroke} strokeWidth={1.5} className="vz-draw" pathLength={1} d={n.path} style={d(delay, 0.8)} />
                 <circle className="vz-dot" cx={n.dot[0]} cy={n.dot[1]} r={10} fill={colors.copper} stroke={colors.canvas} strokeWidth={3} style={d(delay)} />
-                <NoteLabel text={notes[n.id]} x={n.label[0]} y={n.label[1]} delay={delay + 0.4} order={tracked.changed.indexOf(n.id)} />
+                <NoteLabel text={compact ? n.id : notes[n.id]} x={n.label[0]} y={n.label[1]} delay={delay + 0.4} order={tracked.changed.indexOf(n.id)} />
               </g>
             );
           })}
@@ -366,15 +420,17 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
             tracked.changed.map((id, i) => {
               const n = NOTES.find((note) => note.id === id)!;
               const [lx, ly] = n.label;
-              const x0 = lx - 14;
-              const y0 = ly - 28;
-              const x1 = lx + notes[id].length * CHAR_W + 10;
-              const y1 = ly + 12;
+              const shown = compact ? id : notes[id];
+              const x0 = lx - noteSize * 0.6;
+              const y0 = ly - noteSize * 1.25;
+              const x1 = lx + shown.length * charW + noteSize * 0.45;
+              const y1 = ly + noteSize * 0.55;
+              const tri = noteSize / 22;
               return (
                 <g key={`${tracked.key}-${id}`} style={{ '--i': i } as CSSProperties}>
                   <circle className="vz-ping" cx={n.dot[0]} cy={n.dot[1]} r={10} fill="none" stroke={colors.copper} strokeWidth={2} />
                   <path className="vz-cloud" pathLength={1} d={cloudPath(x0, y0, x1, y1)} fill="none" stroke={colors.copper} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-                  <g className="vz-delta" transform={`translate(${x1 + 4} ${y0 - 4})`}>
+                  <g className="vz-delta" transform={`translate(${x1 + 4 * tri} ${y0 - 4 * tri}) scale(${tri})`}>
                     <path d="M0 -17 L15 9 H-15 Z" fill={colors.canvas} stroke={colors.copper} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
                     <text y={6} textAnchor="middle" fontSize={15} letterSpacing={0} fill={colors.copperDeep}>
                       {tracked.rev}
@@ -426,6 +482,20 @@ export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens 
           <LensLabel text={`Rev ${proposal.rev} · ${proposal.name}`} />
         </Box>
       </Box>
+    </Box>
+
+    {compact && layers.notes && (
+      <Box component="ol" aria-label={`Keynotes, revision ${proposal.rev}`} sx={{ listStyle: 'none', m: 0, p: 0, borderTop: `1px solid ${colors.ink}` }}>
+        {NOTES.map((n) => (
+          <KeynoteRow
+            key={n.id}
+            id={n.id}
+            text={notes[n.id]}
+            changedRev={tracked.key > 0 && tracked.changed.includes(n.id) ? tracked.rev : null}
+          />
+        ))}
+      </Box>
+    )}
     </Box>
   );
 }

@@ -10,9 +10,11 @@ import { SheetViewer } from '../../components/drawing/SheetViewer';
 import { enterBrowserFullscreen } from '../../components/drawing/fullscreen';
 import { useIntroDone } from '../../motion/IntroContext';
 import { useFrame } from '../../motion/useFrame';
+import { useFitText } from '../../motion/useFitText';
 import { clamp, lerp } from '../../motion/engine';
 
 const PLATE_SIZES = '(min-width: 900px) 58vw, 100vw';
+const TITLE = ['See the room', 'before it', 'exists.'];
 
 /**
  * Hero = sheet A-101. The room is plotted as a survey drawing, the photo
@@ -27,6 +29,8 @@ export function HeroSection({ onNavigate }: { onNavigate: Navigate }) {
   const [mode, setMode] = useState<'lens' | 'full'>('lens');
   const revision = revisions[revIndex]!;
   const titleLines = useRef<(HTMLSpanElement | null)[]>([]);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useFitText(titleRef, TITLE);
 
   // Leaving the hero: each title line stretches out along Archivo's width
   // axis (62 → 125) and slides away, one after another.
@@ -62,13 +66,14 @@ export function HeroSection({ onNavigate }: { onNavigate: Navigate }) {
               Sheet A-101 · Living room · Proposal
             </Typography>
             <Typography
+              ref={titleRef}
               id="hero-title"
               variant="h1"
               component="h1"
               className={play ? 'is-in' : undefined}
               sx={{ m: 0, contain: 'inline-size', minWidth: 0 }}
             >
-              {['See the room', 'before it', 'exists.'].map((line, i) => (
+              {TITLE.map((line, i) => (
                 <span className="vz-line" key={line}>
                   <span
                     ref={(el) => {
