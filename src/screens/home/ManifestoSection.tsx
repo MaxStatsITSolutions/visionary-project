@@ -58,7 +58,7 @@ export function ManifestoSection() {
     <Section labelledBy="manifesto-label" sx={{ py: { xs: 14, md: 22 } }}>
       <Box sx={gridSx}>
         <Box id="manifesto-label" sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 3' }, mb: 4 }}>
-          <SectionLabel index="02" label="Manifesto" />
+          <SectionLabel index="04" label="Manifesto" />
         </Box>
         <Typography
           ref={ref}

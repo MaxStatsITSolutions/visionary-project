@@ -44,7 +44,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
     <Section labelledBy="styles-title" sx={{ pb: { xs: 14, md: 22 } }}>
       <Box sx={{ ...gridSx, rowGap: 3, mb: { xs: 6, md: 10 }, alignItems: 'end' }}>
         <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 3' }, alignSelf: 'start', pt: { md: 2 } }}>
-          <SectionLabel index="03" label="Directions" />
+          <SectionLabel index="05" label="Directions" />
         </Box>
         <RevealText
           id="styles-title"

@@ -63,6 +63,14 @@ svg {
   transform: none;
 }
 
+/* ---- Fade-up for swapped captions ---- */
+@keyframes vz-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 /* ---- Marquee ---- */
 @keyframes vz-marquee {
   to {

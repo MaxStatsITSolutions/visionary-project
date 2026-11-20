@@ -34,7 +34,7 @@ export function ProcessSection() {
             gap: 4,
           }}
         >
-          <SectionLabel index="04" label="How it works" />
+          <SectionLabel index="06" label="How it works" />
           <RevealText id="process-title" variant="h2" lines={['From a photo', 'to a plan,', <em key="c">calmly.</em>]} />
         </Box>
 

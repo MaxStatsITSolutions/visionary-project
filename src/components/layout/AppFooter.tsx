@@ -19,7 +19,7 @@ export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
       component="footer"
       sx={{ bgcolor: colors.ink, color: colors.canvas, pt: { xs: 12, md: 18 }, overflow: 'hidden' }}
     >
-      <SectionLabel index="05" label="Begin" tone="light" />
+      <SectionLabel index="07" label="Begin" tone="light" />
       <Box sx={{ ...gridSx, mt: { xs: 4, md: 6 }, rowGap: 6, alignItems: 'end' }}>
         <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 8' } }}>
           <RevealText
