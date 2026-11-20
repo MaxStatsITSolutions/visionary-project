@@ -1,7 +1,89 @@
-:root { font-synthesis: none; text-rendering: optimizeLegibility; }
-html { scroll-behavior: smooth; }
-body { margin: 0; }
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ink: #191b1a;
+  --canvas: #f4f1ea;
+  --copper: #b87957;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Visible, consistent keyboard focus everywhere (§15). */
+:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 3px;
+}
+
+/* ---- Masked line reveal (used by <RevealText>) ---- */
+.vz-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.vz-line > span {
+  display: inline-block;
+  transform: translateY(105%);
+  transition: transform 1.1s var(--ease);
+  transition-delay: var(--d, 0ms);
+  will-change: transform;
+}
+.is-in .vz-line > span {
+  transform: none;
+}
+
+/* ---- Generic fade-up (used by <Reveal>) ---- */
+.vz-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 1.1s var(--ease);
+  transition-delay: var(--d, 0ms);
+}
+.vz-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Marquee ---- */
+@keyframes vz-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .vz-line > span,
+  .vz-reveal {
+    transform: none;
+    opacity: 1;
+  }
 }
