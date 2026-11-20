@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { colors, layout } from '../../theme/tokens';
+import { colors, fonts, layout } from '../../theme/tokens';
 import { Reveal, RevealText } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { Section } from '../../components/layout/Section';
@@ -36,7 +36,7 @@ export function ProcessSection() {
           }}
         >
           <SectionLabel index="06" label="How it works" />
-          <RevealText id="process-title" variant="h2" lines={['From a photo', 'to a plan,', <em key="c">calmly.</em>]} />
+          <RevealText id="process-title" variant="h2" lines={['From a photo', 'to a plan,', 'calmly.']} />
         </Box>
 
         <Box component="ol" sx={{ gridColumn: { xs: '1 / -1', md: '7 / -1' }, listStyle: 'none', m: 0, p: 0, display: 'grid', gap: { xs: 8, md: 14 } }}>
@@ -49,7 +49,7 @@ export function ProcessSection() {
                 </Typography>
                 <Parallax speed={-0.1} aria-hidden>
                   <Typography
-                    sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '3rem', md: '6rem' }, fontWeight: 300, lineHeight: 1, color: colors.limestone, fontStyle: 'italic' }}
+                    sx={{ fontFamily: fonts.mono, fontSize: { xs: '2.5rem', md: '4.5rem' }, fontWeight: 400, lineHeight: 1, color: colors.limestone }}
                   >
                     {String(i + 1).padStart(2, '0')}
                   </Typography>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, ButtonBase, Drawer, IconButton, Typography } from '@mui/material';
 import type { Navigate, NavigableScreen, Screen } from '../../types/navigation';
-import { colors, layout, motion } from '../../theme/tokens';
+import { colors, fonts, layout, motion, width } from '../../theme/tokens';
 
 const NAV: { screen: NavigableScreen; label: string }[] = [
   { screen: 'explore', label: 'Explore' },
@@ -21,16 +21,17 @@ export function Wordmark({ onClick, tone = 'dark' }: { onClick?: () => void; ton
       aria-label="VISIONARY — home"
       sx={{
         minHeight: 44,
-        fontFamily: '"Fraunces", serif',
-        fontSize: '1.35rem',
-        fontWeight: 400,
-        letterSpacing: '0.14em',
+        fontFamily: fonts.display,
+        fontVariationSettings: width(100),
+        fontSize: '0.95rem',
+        fontWeight: 700,
+        letterSpacing: '0.32em',
         color: tone === 'dark' ? colors.ink : colors.canvas,
-        gap: 0.75,
+        gap: 1,
       }}
     >
       VISIONARY
-      <Box component="span" aria-hidden sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: colors.copper, mb: '-6px' }} />
+      <Box component="span" aria-hidden sx={{ width: 8, height: 8, bgcolor: colors.copper }} />
     </ButtonBase>
   );
 }
@@ -60,9 +61,8 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
         top: 0,
         zIndex: 1100,
         transition: `background-color ${motion.base}ms ${motion.ease}, box-shadow ${motion.base}ms ${motion.ease}`,
-        bgcolor: scrolled ? 'rgba(244, 241, 234, 0.82)' : 'transparent',
-        backdropFilter: scrolled ? 'saturate(140%) blur(14px)' : 'none',
-        boxShadow: scrolled ? `inset 0 -1px 0 ${colors.line}` : 'none',
+        bgcolor: scrolled ? 'rgba(244, 241, 234, 0.9)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(10px)' : 'none',
       }}
     >
       <Box
@@ -73,6 +73,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
           height: layout.headerHeight,
           display: 'grid',
           gridTemplateColumns: { xs: '1fr auto', md: '1fr auto 1fr' },
+          borderBottom: `1px solid ${colors.ink}`,
           alignItems: 'center',
         }}
       >

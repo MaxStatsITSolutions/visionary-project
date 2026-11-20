@@ -13,7 +13,7 @@ export function SkipLink({ targetId = 'main' }: { targetId?: string }) {
         zIndex: 2000,
         px: 2.5,
         py: 1.5,
-        borderRadius: 999,
+        borderRadius: 0,
         bgcolor: colors.ink,
         color: colors.canvas,
         textDecoration: 'none',

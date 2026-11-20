@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { Box } from '@mui/material';
 import { interiorStyles } from '../../content/styles';
-import { colors } from '../../theme/tokens';
+import { colors, fonts, width } from '../../theme/tokens';
 import { useFrame } from '../../motion/useFrame';
 
 /**
@@ -37,18 +37,21 @@ export function StylesMarquee() {
                 <Box
                   component="span"
                   sx={{
-                    fontFamily: '"Fraunces", serif',
-                    fontSize: 'clamp(2rem, 5vw, 4.5rem)',
-                    fontWeight: 300,
-                    fontStyle: i % 2 ? 'italic' : 'normal',
-                    letterSpacing: '-0.02em',
+                    fontFamily: fonts.display,
+                    fontVariationSettings: width(62),
+                    textTransform: 'uppercase',
+                    fontSize: 'clamp(2.4rem, 6vw, 5.5rem)',
+                    fontWeight: i % 2 ? 300 : 650,
+                    color: i % 2 ? 'transparent' : colors.ink,
+                    WebkitTextStroke: i % 2 ? `1px ${colors.ink}` : undefined,
+                    letterSpacing: '-0.005em',
                     px: { xs: 3, md: 5 },
                     whiteSpace: 'nowrap',
                   }}
                 >
                   {name}
                 </Box>
-                <Box component="span" sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: colors.copper, flexShrink: 0 }} />
+                <Box component="span" sx={{ width: 10, height: 10, bgcolor: colors.copper, flexShrink: 0 }} />
               </Box>
             ))}
           </Box>

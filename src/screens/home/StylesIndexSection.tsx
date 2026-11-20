@@ -115,7 +115,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
                     gridColumn: { xs: '2 / span 3', sm: '2 / span 4', md: '2 / span 5' },
                     transition: `transform ${motion.base}ms ${motion.ease}, font-style 0ms`,
                     transform: isActive ? 'translateX(12px)' : 'none',
-                    fontStyle: isActive ? 'italic' : 'normal',
+                    color: isActive ? colors.copperDeep : undefined,
                   }}
                 >
                   {s.name}

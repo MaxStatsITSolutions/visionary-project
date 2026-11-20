@@ -1,6 +1,6 @@
 import { Box, Button, ButtonBase, Typography } from '@mui/material';
 import type { Navigate, NavigableScreen } from '../../types/navigation';
-import { colors, motion } from '../../theme/tokens';
+import { colors, fonts, motion, width } from '../../theme/tokens';
 import { RevealText } from '../common/Reveal';
 import { SectionLabel } from '../common/SectionLabel';
 import { Section } from './Section';
@@ -50,7 +50,7 @@ export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
             lines={[
               'Your room is',
               <>
-                <Box component="em" sx={{ fontStyle: 'italic', color: colors.copper }}>
+                <Box component="span" sx={{ color: colors.copper }}>
                   waiting
                 </Box>{' '}
                 to be seen.
@@ -115,7 +115,8 @@ export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
         sx={{
           mt: { xs: 4, md: 6 },
           mb: { xs: -1.5, md: -4 },
-          fontFamily: '"Fraunces", serif',
+          fontFamily: fonts.display,
+          fontVariationSettings: width(62),
           fontWeight: 300,
           fontSize: 'clamp(4rem, 17.5vw, 17rem)',
           lineHeight: 0.8,

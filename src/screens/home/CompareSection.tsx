@@ -97,7 +97,7 @@ export function CompareSection() {
                     minHeight: 44,
                     px: 2,
                     gap: 1,
-                    borderRadius: 999,
+                    borderRadius: 0,
                     border: `1px solid ${active ? colors.ink : colors.line}`,
                     bgcolor: active ? colors.ink : 'transparent',
                     color: active ? colors.canvas : colors.ink,

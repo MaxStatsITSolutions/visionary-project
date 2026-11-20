@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box } from '@mui/material';
-import { colors } from '../theme/tokens';
+import { colors, fonts, width } from '../theme/tokens';
 import { interiorSrc } from '../content/media';
 import { beforeImage } from '../content/styles';
 import { reducedMotion } from './engine';
@@ -100,9 +100,9 @@ export function Preloader({ onDone }: { onDone: () => void }) {
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box sx={{ fontFamily: '"Fraunces", serif', letterSpacing: '0.14em', fontSize: '1.1rem' }}>VISIONARY</Box>
+        <Box sx={{ fontFamily: fonts.display, fontVariationSettings: width(100), fontWeight: 700, letterSpacing: '0.32em', fontSize: '0.95rem' }}>VISIONARY</Box>
         <Box sx={{ fontSize: '0.72rem', letterSpacing: '0.16em', textTransform: 'uppercase', opacity: 0.6, textAlign: 'right' }}>
-          Preparing the room
+          Plotting sheet A-101
         </Box>
       </Box>
       <Box sx={{ display: 'grid', gap: 2 }}>
@@ -110,8 +110,9 @@ export function Preloader({ onDone }: { onDone: () => void }) {
           component="span"
           ref={countRef}
           sx={{
-            fontFamily: '"Fraunces", serif',
-            fontWeight: 300,
+            fontFamily: fonts.display,
+            fontVariationSettings: width(62),
+            fontWeight: 650,
             fontSize: 'clamp(5rem, 22vw, 20rem)',
             lineHeight: 0.8,
             letterSpacing: '-0.04em',

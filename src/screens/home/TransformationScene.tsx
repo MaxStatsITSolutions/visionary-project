@@ -77,7 +77,7 @@ function ScrubbedTransformation() {
       const open = easeInOut(clamp01(t / 0.7));
       const insetX = lerp(Math.min(w * 0.12, 180), 0, open);
       const insetY = lerp(Math.min(h * 0.1, 90), 0, open);
-      stage.style.clipPath = `inset(${insetY}px ${insetX}px round ${lerp(6, 0, open)}px)`;
+      stage.style.clipPath = `inset(${insetY}px ${insetX}px)`;
 
       // Survey annotations: in during the intro, out as the first style arrives.
       const surveyIn = clamp01((t - 0.45) / 0.35);
@@ -243,7 +243,7 @@ function ScrubbedTransformation() {
                 <Box ref={introRef} sx={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
                   <SectionLabel index="02" label="Transformation" tone="light" sx={{ mb: 2 }} />
                   <Typography id="transformation-title" variant="h2" component="h2">
-                    Same window. <Box component="em" sx={{ fontStyle: 'italic' }}>Six rooms.</Box>
+                    Same window. <Box component="span" sx={{ color: colors.copper }}>Six rooms.</Box>
                   </Typography>
                 </Box>
                 {stylesWithImages.map((s, i) => (
@@ -263,7 +263,7 @@ function ScrubbedTransformation() {
                     <Typography variant="overline" sx={{ opacity: 0.75, fontVariantNumeric: 'tabular-nums' }}>
                       {String(i + 1).padStart(2, '0')} / {String(STEPS).padStart(2, '0')}
                     </Typography>
-                    <Typography variant="h1" component="p" sx={{ fontSize: 'clamp(3rem, 8vw, 8rem)', fontStyle: 'italic' }}>
+                    <Typography variant="h1" component="p" sx={{ fontSize: 'clamp(3.5rem, 10vw, 10rem)' }}>
                       {s.name}
                     </Typography>
                   </Box>
@@ -340,7 +340,7 @@ function StaticTransformation() {
     <Section labelledBy="transformation-title" sx={{ py: { xs: 12, md: 18 } }}>
       <SectionLabel index="02" label="Transformation" sx={{ mb: 3 }} />
       <Typography id="transformation-title" variant="h2" component="h2" sx={{ mb: { xs: 4, md: 6 } }}>
-        Same window. <em>Six rooms.</em>
+        Same window. Six rooms.
       </Typography>
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' } }}>
         {[{ id: 'before', name: 'Before', image: beforeImage }, ...stylesWithImages].map((s) => (

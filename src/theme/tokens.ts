@@ -14,10 +14,16 @@ export const colors = {
   line: 'rgba(25, 27, 26, 0.14)',
 } as const;
 
+// Drawing-set direction: one variable grotesk (Archivo, with a width axis)
+// for display and text, plus a mono for annotations, like a drawing sheet.
 export const fonts = {
-  display: '"Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif',
-  body: '"Inter", "Segoe UI", system-ui, -apple-system, sans-serif',
+  display: '"Archivo", "Helvetica Neue", Arial, sans-serif',
+  body: '"Archivo", "Helvetica Neue", Arial, sans-serif',
+  mono: '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace',
 } as const;
+
+/** font-variation-settings for Archivo's width axis (62 = condensed, 125 = expanded). */
+export const width = (wdth: number) => `"wdth" ${wdth}`;
 
 // Motion: a single, calm curve family used everywhere.
 export const motion = {
