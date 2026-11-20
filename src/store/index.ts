@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
+import connectionCheckReducer from '../features/connectionCheck/connectionCheckSlice';
 import navigationReducer from '../features/navigation/navigationSlice';
 
 // Add each new feature slice here (one line per slice).
 export const store = configureStore({
   reducer: {
     navigation: navigationReducer,
+    connectionCheck: connectionCheckReducer,
   },
 });
 
