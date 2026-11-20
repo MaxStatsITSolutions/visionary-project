@@ -43,6 +43,7 @@ export const interiorStyles: InteriorStyle[] = [
     descriptor: 'Pale timber, soft wool, long northern light.',
     materials: ['Ash', 'Wool', 'Paper'],
     swatches: ['#F2EFEA', '#D8C4A4', '#B7B7B2', '#6B7458'],
+    image: 'scandinavian',
   },
   {
     id: 'industrial',
@@ -50,6 +51,7 @@ export const interiorStyles: InteriorStyle[] = [
     descriptor: 'Brick, blackened steel and cognac leather.',
     materials: ['Brick', 'Steel', 'Leather'],
     swatches: ['#9C5A3C', '#5E5A54', '#8E5A3E', '#1D1F1E'],
+    image: 'industrial',
   },
   {
     id: 'mediterranean',
