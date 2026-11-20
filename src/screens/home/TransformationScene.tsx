@@ -151,6 +151,7 @@ function ScrubbedTransformation() {
       sx={{ position: 'relative', height: `${(STEPS + 1) * 85 + 100}svh` }}
     >
       <Box
+        data-cursor="Scroll"
         sx={{
           position: 'sticky',
           top: 0,

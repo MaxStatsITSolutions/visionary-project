@@ -1,4 +1,4 @@
-﻿import { useCallback } from 'react';
+﻿import { useCallback, useState } from 'react';
 import { Box } from '@mui/material';
 import type { NavigableScreen, Screen } from './types/navigation';
 import { useAppDispatch, useAppSelector } from './store/hooks';
@@ -8,6 +8,10 @@ import { AppFooter } from './components/layout/AppFooter';
 import { SkipLink } from './components/layout/SkipLink';
 import { HomeScreen } from './screens/HomeScreen';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
+import { IntroContext } from './motion/IntroContext';
+import { Preloader } from './motion/Preloader';
+import { Cursor } from './motion/Cursor';
+import { colors } from './theme/tokens';
 
 const TITLES: Record<Screen, string> = {
   home: 'Home',
@@ -24,6 +28,8 @@ const TITLES: Record<Screen, string> = {
 export default function App() {
   const current = useAppSelector((state) => state.navigation.currentScreen);
   const dispatch = useAppDispatch();
+  const [introDone, setIntroDone] = useState(false);
+  const finishIntro = useCallback(() => setIntroDone(true), []);
 
   const navigate = useCallback(
     (screen: NavigableScreen) => {
@@ -35,17 +41,33 @@ export default function App() {
   );
 
   return (
-    <>
+    <IntroContext.Provider value={introDone}>
+      <Preloader onDone={finishIntro} />
+      <Cursor />
       <SkipLink />
       <AppHeader current={current} onNavigate={navigate} />
-      <Box component="main" id="main" tabIndex={-1} sx={{ outline: 'none' }}>
+      {/* Main slides up over the footer, which waits underneath (sticky). */}
+      <Box
+        component="main"
+        id="main"
+        tabIndex={-1}
+        sx={{
+          outline: 'none',
+          position: 'relative',
+          zIndex: 1,
+          bgcolor: colors.canvas,
+          boxShadow: '0 40px 80px -40px rgba(25,27,26,0.35)',
+        }}
+      >
         {current === 'home' ? (
           <HomeScreen onNavigate={navigate} />
         ) : (
           <PlaceholderScreen title={TITLES[current]} onNavigate={navigate} />
         )}
       </Box>
-      <AppFooter onNavigate={navigate} />
-    </>
+      <Box sx={{ position: { md: 'sticky' }, bottom: 0, zIndex: 0 }}>
+        <AppFooter onNavigate={navigate} />
+      </Box>
+    </IntroContext.Provider>
   );
 }

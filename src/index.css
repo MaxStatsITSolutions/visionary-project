@@ -63,6 +63,16 @@ svg {
   transform: none;
 }
 
+/* ---- Rules that draw themselves when their <Reveal> enters ---- */
+.vz-rule {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s var(--ease) 150ms;
+}
+.is-in .vz-rule {
+  transform: none;
+}
+
 /* ---- Fade-up for swapped captions ---- */
 @keyframes vz-fade {
   from {
@@ -84,7 +94,9 @@ svg {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
   html {
     scroll-behavior: auto;

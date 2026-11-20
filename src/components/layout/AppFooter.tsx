@@ -4,6 +4,7 @@ import { colors, motion } from '../../theme/tokens';
 import { RevealText } from '../common/Reveal';
 import { SectionLabel } from '../common/SectionLabel';
 import { Section } from './Section';
+import { useInView } from '../../hooks/useInView';
 import { gridSx } from './grid';
 
 const LINKS: { screen: NavigableScreen; label: string }[] = [
@@ -12,6 +13,28 @@ const LINKS: { screen: NavigableScreen; label: string }[] = [
   { screen: 'studio', label: 'Studio' },
   { screen: 'privacy', label: 'Privacy' },
 ];
+
+/** Giant outline wordmark whose letters rise one by one when it enters. */
+function WordmarkLetters() {
+  const { ref, inView } = useInView<HTMLSpanElement>({ threshold: 0.4 });
+  return (
+    <Box component="span" ref={ref} sx={{ display: 'inline-flex', overflow: 'hidden', pb: '0.06em' }}>
+      {Array.from('VISIONARY').map((ch, i) => (
+        <Box
+          component="span"
+          key={i}
+          sx={{
+            display: 'inline-block',
+            transform: inView ? 'none' : 'translateY(100%)',
+            transition: `transform 1.3s var(--ease) ${i * 70}ms`,
+          }}
+        >
+          {ch}
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
   return (
@@ -104,7 +127,7 @@ export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
           userSelect: 'none',
         }}
       >
-        VISIONARY
+        <WordmarkLetters />
       </Box>
     </Section>
   );

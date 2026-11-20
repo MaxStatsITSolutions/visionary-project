@@ -8,6 +8,7 @@ import { SectionLabel } from '../../components/common/SectionLabel';
 import { InteriorImage } from '../../components/common/InteriorImage';
 import { BeforeAfterSlider } from '../../components/gallery/BeforeAfterSlider';
 import { Section } from '../../components/layout/Section';
+import { RevealMask } from '../../motion/RevealMask';
 import { gridSx } from '../../components/layout/grid';
 
 const SLIDER_SIZES = '(min-width: 1440px) 1344px, calc(100vw - 40px)';
@@ -45,8 +46,9 @@ export function CompareSection() {
           <Typography color="text.secondary">Pick a direction, then drag or use the arrow keys to compare it with the empty room.</Typography>
         </Reveal>
       </Box>
-      <Reveal>
-        <BeforeAfterSlider
+      <RevealMask>
+        <Box data-cursor="Drag">
+          <BeforeAfterSlider
           label="Compare the empty room with the styled concept"
           beforeLabel="Before"
           afterLabel={style.name}
@@ -55,7 +57,6 @@ export function CompareSection() {
           before={
             <InteriorImage
               name={beforeImage}
-              
               sizes={SLIDER_SIZES}
               alt="Empty living room before renovation: white walls, worn laminate floor, a large window and an arched doorway"
             />
@@ -64,12 +65,14 @@ export function CompareSection() {
             <InteriorImage
               key={style.id}
               name={style.image}
-              
               sizes={SLIDER_SIZES}
               alt={`The same living room as a ${style.name} concept: ${style.descriptor}`}
             />
           }
-        />
+          />
+        </Box>
+      </RevealMask>
+      <Reveal>
 
         <Box
           sx={{

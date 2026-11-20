@@ -4,6 +4,7 @@ import { Reveal, RevealText } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { Section } from '../../components/layout/Section';
 import { gridSx } from '../../components/layout/grid';
+import { Parallax } from '../../motion/Parallax';
 
 const STEPS = [
   {
@@ -40,17 +41,19 @@ export function ProcessSection() {
 
         <Box component="ol" sx={{ gridColumn: { xs: '1 / -1', md: '7 / -1' }, listStyle: 'none', m: 0, p: 0, display: 'grid', gap: { xs: 8, md: 14 } }}>
           {STEPS.map((step, i) => (
-            <Reveal component="li" key={step.title} sx={{ display: 'grid', gap: 2.5, pt: 3, borderTop: `1px solid ${colors.ink}` }}>
+            <Reveal component="li" key={step.title} sx={{ display: 'grid', gap: 2.5, pt: 3, position: 'relative' }}>
+              <Box aria-hidden className="vz-rule" sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', bgcolor: colors.ink }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <Typography variant="h4" component="h3">
                   {step.title}
                 </Typography>
-                <Typography
-                  aria-hidden
-                  sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '3rem', md: '5rem' }, fontWeight: 300, lineHeight: 1, color: colors.limestone }}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </Typography>
+                <Parallax speed={-0.1} aria-hidden>
+                  <Typography
+                    sx={{ fontFamily: '"Fraunces", serif', fontSize: { xs: '3rem', md: '6rem' }, fontWeight: 300, lineHeight: 1, color: colors.limestone, fontStyle: 'italic' }}
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </Typography>
+                </Parallax>
               </Box>
               <Typography color="text.secondary" sx={{ maxWidth: 460 }}>
                 {step.body}

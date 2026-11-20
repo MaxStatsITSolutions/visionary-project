@@ -7,6 +7,8 @@ import { RevealText, Reveal } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { InteriorImage } from '../../components/common/InteriorImage';
 import { Section } from '../../components/layout/Section';
+import { useFrame } from '../../motion/useFrame';
+import { damp } from '../../motion/engine';
 import { gridSx } from '../../components/layout/grid';
 
 /** Concept photo when available, otherwise a material swatch composition. */
@@ -33,12 +35,27 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
   const previewRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
+  const target = useRef({ x: 0, y: 0 });
+  const pos = useRef({ x: 0, y: 0, r: 0 });
+
   const onMove = (e: PointerEvent) => {
     const list = listRef.current?.getBoundingClientRect();
-    const el = previewRef.current;
-    if (!list || !el || e.pointerType !== 'mouse') return;
-    el.style.transform = `translate3d(${e.clientX - list.left}px, ${e.clientY - list.top}px, 0) translate(-50%, -50%)`;
+    if (!list || e.pointerType !== 'mouse') return;
+    target.current = { x: e.clientX - list.left, y: e.clientY - list.top };
   };
+
+  // The preview trails the cursor with inertia and leans into its motion.
+  useFrame(({ dt }) => {
+    const el = previewRef.current;
+    if (!el) return;
+    const p = pos.current;
+    const k = damp(8, dt);
+    const dx = (target.current.x - p.x) * k;
+    p.x += dx;
+    p.y += (target.current.y - p.y) * k;
+    p.r += (Math.max(-12, Math.min(12, dx * 0.6)) - p.r) * damp(6, dt);
+    el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) rotate(${p.r.toFixed(2)}deg)`;
+  });
 
   return (
     <Section labelledBy="styles-title" sx={{ pb: { xs: 14, md: 22 } }}>
@@ -76,6 +93,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
                 onFocus={() => setActive(s.id)}
                 onBlur={() => setActive(null)}
                 onClick={() => onNavigate('explore')}
+                data-cursor="View"
                 aria-label={`${s.name}: ${s.descriptor} Explore this direction`}
                 sx={{
                   width: '100%',
@@ -158,7 +176,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
               boxShadow: '0 30px 60px -20px rgba(25,27,26,0.4)',
               transition: `opacity ${motion.fast}ms ${motion.ease}, transform ${motion.base}ms ${motion.ease}`,
               opacity: active ? 1 : 0,
-              transform: active ? 'scale(1) rotate(-2deg)' : 'scale(0.85) rotate(0deg)',
+              transform: active ? 'scale(1)' : 'scale(0.6)',
               position: 'relative',
             }}
           >
