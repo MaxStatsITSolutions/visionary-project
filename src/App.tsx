@@ -1,6 +1,8 @@
-﻿import { useCallback, useState } from 'react';
+﻿import { useCallback } from 'react';
 import { Box } from '@mui/material';
 import type { NavigableScreen, Screen } from './types/navigation';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { navigateTo } from './features/navigation/navigationSlice';
 import { AppHeader } from './components/layout/AppHeader';
 import { AppFooter } from './components/layout/AppFooter';
 import { SkipLink } from './components/layout/SkipLink';
@@ -19,16 +21,18 @@ const TITLES: Record<Screen, string> = {
   privacy: 'Privacy',
 };
 
-// Local screen state until the Redux navigation slice (chore/add-redux-toolkit)
-// is merged; then `current`/`navigate` come from the store instead.
 export default function App() {
-  const [current, setCurrent] = useState<Screen>('home');
+  const current = useAppSelector((state) => state.navigation.currentScreen);
+  const dispatch = useAppDispatch();
 
-  const navigate = useCallback((screen: NavigableScreen) => {
-    setCurrent(screen);
-    window.scrollTo({ top: 0 });
-    document.title = screen === 'home' ? 'VISIONARY — AI Home Transformation' : `${TITLES[screen]} — VISIONARY`;
-  }, []);
+  const navigate = useCallback(
+    (screen: NavigableScreen) => {
+      dispatch(navigateTo(screen));
+      window.scrollTo({ top: 0 });
+      document.title = screen === 'home' ? 'VISIONARY — AI Home Transformation' : `${TITLES[screen]} — VISIONARY`;
+    },
+    [dispatch],
+  );
 
   return (
     <>

@@ -1,13 +1,27 @@
 import { useRef, useState, type PointerEvent } from 'react';
 import { Box, ButtonBase, Typography } from '@mui/material';
 import type { Navigate } from '../../types/navigation';
-import { interiorStyles } from '../../content/styles';
+import { interiorStyles, type InteriorStyle } from '../../content/styles';
 import { colors, motion } from '../../theme/tokens';
 import { RevealText, Reveal } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
-import { RoomIllustration } from '../../components/illustrations/RoomIllustration';
+import { InteriorImage } from '../../components/common/InteriorImage';
 import { Section } from '../../components/layout/Section';
 import { gridSx } from '../../components/layout/grid';
+
+/** Concept photo when available, otherwise a material swatch composition. */
+function StyleVisual({ style, sizes }: { style: InteriorStyle; sizes: string }) {
+  if (style.image) return <InteriorImage name={style.image} alt="" sizes={sizes} />;
+  const [wall, floor, soft, accent] = style.swatches;
+  return (
+    <Box sx={{ width: '100%', height: '100%', display: 'grid', gridTemplateRows: '3fr 2fr', bgcolor: wall }}>
+      <Box sx={{ display: 'grid', placeItems: 'center' }}>
+        <Box sx={{ width: '38%', aspectRatio: '2 / 1', borderRadius: '40px 40px 8px 8px', bgcolor: soft, boxShadow: `inset 0 -10px 0 ${accent}` }} />
+      </Box>
+      <Box sx={{ bgcolor: floor }} />
+    </Box>
+  );
+}
 
 /**
  * Editorial index of styles. On fine pointers a preview card trails the
@@ -99,7 +113,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
                     gap: 0.75,
                   }}
                 >
-                  {[s.palette.wall, s.palette.floor, s.palette.sofa, s.palette.cushion].map((c) => (
+                  {s.swatches.map((c) => (
                     <Box key={c} component="span" sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: c, boxShadow: `inset 0 0 0 1px ${colors.line}` }} />
                   ))}
                 </Box>
@@ -115,7 +129,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
                     overflow: 'hidden',
                   }}
                 >
-                  <RoomIllustration variant="render" palette={s.palette} title="" />
+                  <StyleVisual style={s} sizes="(min-width: 600px) 50vw, 100vw" />
                 </Box>
               </ButtonBase>
             </Box>
@@ -150,7 +164,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
           >
             {interiorStyles.map((s) => (
               <Box key={s.id} sx={{ position: 'absolute', inset: 0, opacity: active === s.id ? 1 : 0, transition: `opacity ${motion.fast}ms` }}>
-                <RoomIllustration variant="render" palette={s.palette} title="" />
+                <StyleVisual style={s} sizes="360px" />
               </Box>
             ))}
           </Box>

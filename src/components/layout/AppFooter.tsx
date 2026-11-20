@@ -83,7 +83,7 @@ export function AppFooter({ onNavigate }: { onNavigate: Navigate }) {
           ))}
         </Box>
         <Typography variant="caption" sx={{ color: 'rgba(244,241,234,0.56)', alignSelf: 'center' }}>
-          Visuals are illustrative demo concepts — not AI output from an uploaded photo.
+          Visuals are illustrative AI concept images — not generated from your upload.
         </Typography>
       </Box>
 
