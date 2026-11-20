@@ -3,10 +3,11 @@ import { Box, ButtonBase, Typography } from '@mui/material';
 import type { Navigate } from '../../types/navigation';
 import { interiorStyles, type InteriorStyle } from '../../content/styles';
 import { colors, motion } from '../../theme/tokens';
-import { RevealText, Reveal } from '../../components/common/Reveal';
+import { Reveal } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { InteriorImage } from '../../components/common/InteriorImage';
 import { Section } from '../../components/layout/Section';
+import { ScrollTitle } from '../../motion/ScrollTitle';
 import { useFrame } from '../../motion/useFrame';
 import { damp } from '../../motion/engine';
 import { gridSx } from '../../components/layout/grid';
@@ -63,12 +64,7 @@ export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
         <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 3' }, alignSelf: 'start', pt: { md: 2 } }}>
           <SectionLabel index="05" label="Directions" />
         </Box>
-        <RevealText
-          id="styles-title"
-          variant="h2"
-          sx={{ gridColumn: { xs: '1 / -1', md: '4 / span 6' } }}
-          lines={['Six directions,', 'one room.']}
-        />
+        <ScrollTitle id="styles-title" sx={{ gridColumn: { xs: '1 / -1', md: '4 / span 6' } }} lines={['Six directions,', 'one room.']} />
         <Reveal sx={{ gridColumn: { xs: '1 / -1', md: '10 / -1' } }}>
           <Typography color="text.secondary">
             Each direction is a complete material language — palette, timber, textile and light — applied to the same space.

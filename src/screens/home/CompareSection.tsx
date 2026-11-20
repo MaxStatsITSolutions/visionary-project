@@ -3,11 +3,12 @@ import { Box, ButtonBase, Typography } from '@mui/material';
 import { colors, motion } from '../../theme/tokens';
 import { beforeImage, stylesWithImages } from '../../content/styles';
 import { interiorSrc } from '../../content/media';
-import { Reveal, RevealText } from '../../components/common/Reveal';
+import { Reveal } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { InteriorImage } from '../../components/common/InteriorImage';
 import { BeforeAfterSlider } from '../../components/gallery/BeforeAfterSlider';
 import { Section } from '../../components/layout/Section';
+import { ScrollTitle } from '../../motion/ScrollTitle';
 import { RevealMask } from '../../motion/RevealMask';
 import { gridSx } from '../../components/layout/grid';
 
@@ -41,7 +42,7 @@ export function CompareSection() {
         <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 3' }, alignSelf: 'start', pt: { md: 2 } }}>
           <SectionLabel index="03" label="Compare" />
         </Box>
-        <RevealText id="compare-title" variant="h2" sx={{ gridColumn: { xs: '1 / -1', md: '4 / span 6' } }} lines={['Drag the wall', 'between then and now.']} />
+        <ScrollTitle id="compare-title" sx={{ gridColumn: { xs: '1 / -1', md: '4 / span 7' } }} lines={['Drag the wall', 'between then', 'and now.']} />
         <Reveal sx={{ gridColumn: { xs: '1 / -1', md: '10 / -1' } }}>
           <Typography color="text.secondary">Pick a direction, then drag or use the arrow keys to compare it with the empty room.</Typography>
         </Reveal>

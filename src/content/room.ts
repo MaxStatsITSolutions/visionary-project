@@ -30,11 +30,15 @@ export const DIMENSIONS = [
   { id: 'height', axis: 'y', at: 1228, from: BACK_WALL.y0, to: BACK_WALL.y1, label: '2 600', labelAt: 478 },
 ] as const;
 
-/** Renovation notes: target point, leader path, label anchor. */
+/** Renovation notes: target point, leader path and label anchor. The text
+ *  of each note depends on the revision (see revisions.ts). */
 export const NOTES = [
-  { id: 'W1', text: 'W1  WINDOW — KEEP', dot: [860, 360], path: 'M860 360 L1040 190 H1400', label: [1046, 174] },
-  { id: 'D1', text: 'D1  ARCH — KEEP', dot: [192, 480], path: 'M192 480 V150 H500', label: [200, 134] },
-  { id: 'WL', text: 'WALLS — LIMEWASH', dot: [1350, 450], path: 'M1350 450 L1290 620 H1510', label: [1266, 604] },
-  { id: 'R1', text: 'R1  RADIATOR — REMOVE', dot: [790, 640], path: 'M790 640 L620 800 H330', label: [336, 784] },
-  { id: 'F1', text: 'F1  LAMINATE → OAK', dot: [980, 870], path: 'M980 870 L1120 950 H1490', label: [1126, 934] },
+  { id: 'W1', dot: [860, 360], path: 'M860 360 L1040 190 H1400', label: [1046, 174] },
+  { id: 'D1', dot: [192, 480], path: 'M192 480 V150 H500', label: [200, 134] },
+  { id: 'WL', dot: [1350, 450], path: 'M1350 450 L1200 620 H1500', label: [1204, 604] },
+  { id: 'R1', dot: [790, 640], path: 'M790 640 L620 800 H330', label: [336, 784] },
+  { id: 'F1', dot: [980, 870], path: 'M980 870 L1120 950 H1490', label: [1126, 934] },
 ] as const;
+
+export type NoteId = (typeof NOTES)[number]['id'];
+export type NoteTexts = Record<NoteId, string>;

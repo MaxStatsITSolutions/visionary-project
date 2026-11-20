@@ -2,15 +2,18 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } fr
 import { Box } from '@mui/material';
 import { colors, fonts } from '../../theme/tokens';
 import { beforeImage } from '../../content/styles';
-import { ARCH, BACK_WALL, DIMENSIONS, NOTES, PENDANT, RADIATOR, ROOM_EDGES, SHEET, SILL, VP, WINDOW } from '../../content/room';
+import { ARCH, BACK_WALL, DIMENSIONS, NOTES, PENDANT, RADIATOR, ROOM_EDGES, SHEET, SILL, VP, WINDOW, type NoteId, type NoteTexts } from '../../content/room';
 import { InteriorImage } from '../common/InteriorImage';
 import { useFrame } from '../../motion/useFrame';
-import { damp, reducedMotion } from '../../motion/engine';
+import { clamp, damp, reducedMotion } from '../../motion/engine';
+import { useScramble } from '../../motion/useScramble';
 import { ALL_LAYERS, type Layers, type Proposal } from './layers';
 
 
 type DrawingPlateProps = {
   proposal: Proposal;
+  /** Renovation notes for the current revision. Changes are redlined on the sheet. */
+  notes: NoteTexts;
   /** Start the plotting sequence (lines → photo → notes → lens). */
   play: boolean;
   layers?: Layers;
@@ -28,6 +31,35 @@ const d = (seconds: number, duration?: number) =>
 
 const stroke = { fill: 'none', stroke: colors.ink, strokeWidth: 1.25, vectorEffect: 'non-scaling-stroke' as const };
 
+/** Advance of one IBM Plex Mono glyph at 22 units + 1.5 letter-spacing. */
+const CHAR_W = 14.7;
+
+/** Scalloped "revision cloud" around a rectangle, drawn clockwise so every arc bulges outward. */
+function cloudPath(x0: number, y0: number, x1: number, y1: number, r = 9) {
+  const edge = (len: number) => {
+    const n = Math.max(1, Math.round(len / (2 * r)));
+    return { n, step: len / n };
+  };
+  let path = `M${x0} ${y0}`;
+  const h = edge(x1 - x0);
+  const v = edge(y1 - y0);
+  for (let i = 0; i < h.n; i++) path += ` a${h.step / 2} ${h.step / 2} 0 0 1 ${h.step} 0`;
+  for (let i = 0; i < v.n; i++) path += ` a${v.step / 2} ${v.step / 2} 0 0 1 0 ${v.step}`;
+  for (let i = 0; i < h.n; i++) path += ` a${h.step / 2} ${h.step / 2} 0 0 1 ${-h.step} 0`;
+  for (let i = 0; i < v.n; i++) path += ` a${v.step / 2} ${v.step / 2} 0 0 1 0 ${-v.step}`;
+  return `${path} Z`;
+}
+
+function NoteLabel({ text, x, y, delay, order }: { text: string; x: number; y: number; delay: number; order: number }) {
+  const ref = useScramble<SVGTextElement>(text, { delay: order * 80, duration: 700 });
+  return <text ref={ref} className="vz-pop vz-label" x={x} y={y} style={d(delay)} />;
+}
+
+function LensLabel({ text }: { text: string }) {
+  const ref = useScramble<HTMLSpanElement>(text, { duration: 500 });
+  return <span ref={ref} />;
+}
+
 /**
  * Sheet A-101: the demo room as an architectural drawing.
  * The survey linework is plotted first, the photo develops underneath it,
@@ -35,14 +67,27 @@ const stroke = { fill: 'none', stroke: colors.ink, strokeWidth: 1.25, vectorEffe
  * Everything shares one 1536×1024 coordinate system with the photos, and the
  * plate keeps their 3:2 ratio, so drawing and photo always line up.
  */
-export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true, sizes, priority = false }: DrawingPlateProps) {
+export function DrawingPlate({ proposal, notes, play, layers = ALL_LAYERS, lens = true, sizes, priority = false }: DrawingPlateProps) {
   const plateRef = useRef<HTMLDivElement>(null);
   const proposalRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
-  const lensState = useRef({ x: 0, y: 0, tx: 0, ty: 0, r: 0, manual: false, last: 0, init: false, pressed: false });
+  const lensState = useRef({ x: 0, y: 0, tx: 0, ty: 0, r: 0, vr: 0, manual: false, last: 0, init: false, holding: false });
+  const holdTimer = useRef(0);
   const [plotted, setPlotted] = useState(false);
   const reduced = reducedMotion();
   const lensReady = play && (plotted || reduced);
+
+  // Which notes changed with the last revision switch (derived during render).
+  const [tracked, setTracked] = useState<{ notes: NoteTexts; changed: NoteId[]; rev: string; key: number }>({
+    notes,
+    changed: [],
+    rev: proposal.rev,
+    key: 0,
+  });
+  if (tracked.notes !== notes) {
+    const changed = NOTES.filter((n) => tracked.notes[n.id] !== notes[n.id]).map((n) => n.id);
+    setTracked({ notes, changed, rev: proposal.rev, key: tracked.key + 1 });
+  }
 
   useEffect(() => {
     if (!play || reduced) return;
@@ -51,6 +96,13 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
   }, [play, reduced]);
 
   const lensRadius = (w: number) => Math.max(56, Math.min(200, w * 0.13));
+  /** Radius that covers the whole plate from the lens centre: the iris fully open. */
+  const fullRadius = (w: number, h: number, x: number, y: number) => Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) + 2;
+  const targetRadius = (w: number, h: number) => {
+    const s = lensState.current;
+    if (!lensReady || !layers.proposal) return 0;
+    return !lens || s.holding ? fullRadius(w, h, s.x, s.y) : lensRadius(w);
+  };
 
   const paintLens = () => {
     const el = plateRef.current;
@@ -58,15 +110,13 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
     const ring = ringRef.current;
     if (!el || !prop || !ring) return;
     const s = lensState.current;
-    if (!lens) {
-      prop.style.clipPath = 'none';
-      ring.style.opacity = '0';
-      return;
-    }
+    const base = lensRadius(el.clientWidth);
     prop.style.clipPath = `circle(${s.r.toFixed(1)}px at ${s.x.toFixed(1)}px ${s.y.toFixed(1)}px)`;
     ring.style.width = ring.style.height = `${(s.r * 2).toFixed(1)}px`;
     ring.style.transform = `translate(${(s.x - s.r).toFixed(1)}px, ${(s.y - s.r).toFixed(1)}px)`;
-    ring.style.opacity = s.r > 4 ? '1' : '0';
+    // The ring and its label dissolve as the iris opens past the lens size.
+    const opening = clamp((s.r - base * 1.1) / (base * 1.4));
+    ring.style.opacity = s.r > 4 ? String(1 - opening) : '0';
   };
 
   // Lens physics on the shared loop (not called at all with reduced motion).
@@ -87,11 +137,17 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
       s.y = s.ty;
       s.init = true;
     }
-    const target = lensReady && layers.proposal ? lensRadius(w) * (s.pressed ? 1.6 : 1) : 0;
     const k = damp(8, dt);
     s.x += (s.tx - s.x) * k;
     s.y += (s.ty - s.y) * k;
-    s.r += (target - s.r) * damp(7, dt);
+    // Iris radius on a critically damped spring: starts from rest, accelerates,
+    // and settles without overshoot (~0.85 s to open, ~0.6 s to close).
+    const target = targetRadius(w, h);
+    const omega = target > s.r ? 5.5 : 8;
+    const step = dt / 1000;
+    s.vr += (omega * omega * (target - s.r) - 2 * omega * s.vr) * step;
+    s.r = Math.max(0, s.r + s.vr * step);
+    if (s.r === 0) s.vr = 0;
     paintLens();
   });
 
@@ -106,7 +162,7 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
       s.y = el.clientHeight * 0.42;
       s.init = true;
     }
-    s.r = lensReady && layers.proposal ? lensRadius(el.clientWidth) : 0;
+    s.r = targetRadius(el.clientWidth, el.clientHeight);
     paintLens();
   });
 
@@ -133,14 +189,23 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
       onPointerMove={onMove}
       onPointerDown={(e) => {
         onMove(e);
-        lensState.current.pressed = true;
+        // Hold to open the iris over the whole room; a quick click does nothing.
+        window.clearTimeout(holdTimer.current);
+        holdTimer.current = window.setTimeout(() => {
+          lensState.current.holding = true;
+          if (reduced) paintLens();
+        }, 160);
       }}
-      onPointerUp={() => (lensState.current.pressed = false)}
+      onPointerUp={() => {
+        window.clearTimeout(holdTimer.current);
+        lensState.current.holding = false;
+      }}
       onPointerLeave={() => {
+        window.clearTimeout(holdTimer.current);
         lensState.current.manual = false;
-        lensState.current.pressed = false;
+        lensState.current.holding = false;
       }}
-      data-cursor={lens ? 'Look' : undefined}
+      data-cursor={lens ? 'Hold' : undefined}
       sx={{
         position: 'relative',
         aspectRatio: '3 / 2',
@@ -291,12 +356,33 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
               <g key={n.id}>
                 <path {...stroke} strokeWidth={1.5} className="vz-draw" pathLength={1} d={n.path} style={d(delay, 0.8)} />
                 <circle className="vz-dot" cx={n.dot[0]} cy={n.dot[1]} r={10} fill={colors.copper} stroke={colors.canvas} strokeWidth={3} style={d(delay)} />
-                <text className="vz-pop vz-label" x={n.label[0]} y={n.label[1]} style={d(delay + 0.4)}>
-                  {n.text}
-                </text>
+                <NoteLabel text={notes[n.id]} x={n.label[0]} y={n.label[1]} delay={delay + 0.4} order={tracked.changed.indexOf(n.id)} />
               </g>
             );
           })}
+
+          {/* Redlining: clouds, delta and a ping around the notes this revision changed */}
+          {tracked.key > 0 &&
+            tracked.changed.map((id, i) => {
+              const n = NOTES.find((note) => note.id === id)!;
+              const [lx, ly] = n.label;
+              const x0 = lx - 14;
+              const y0 = ly - 28;
+              const x1 = lx + notes[id].length * CHAR_W + 10;
+              const y1 = ly + 12;
+              return (
+                <g key={`${tracked.key}-${id}`} style={{ '--i': i } as CSSProperties}>
+                  <circle className="vz-ping" cx={n.dot[0]} cy={n.dot[1]} r={10} fill="none" stroke={colors.copper} strokeWidth={2} />
+                  <path className="vz-cloud" pathLength={1} d={cloudPath(x0, y0, x1, y1)} fill="none" stroke={colors.copper} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                  <g className="vz-delta" transform={`translate(${x1 + 4} ${y0 - 4})`}>
+                    <path d="M0 -17 L15 9 H-15 Z" fill={colors.canvas} stroke={colors.copper} strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
+                    <text y={6} textAnchor="middle" fontSize={15} letterSpacing={0} fill={colors.copperDeep}>
+                      {tracked.rev}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
         </g>
       </svg>
 
@@ -337,7 +423,7 @@ export function DrawingPlate({ proposal, play, layers = ALL_LAYERS, lens = true,
             textTransform: 'uppercase',
           }}
         >
-          Rev {proposal.rev} · {proposal.name}
+          <LensLabel text={`Rev ${proposal.rev} · ${proposal.name}`} />
         </Box>
       </Box>
     </Box>

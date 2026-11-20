@@ -86,6 +86,7 @@ export function SheetViewer({ open, onClose, revIndex, onRevChange }: SheetViewe
               key={plotKey}
               play={open}
               proposal={{ image: revision.image, name: revision.name, rev: revision.rev }}
+              notes={revision.notes}
               layers={layers}
               lens={mode === 'lens'}
               sizes="100vw"

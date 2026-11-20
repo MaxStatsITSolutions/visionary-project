@@ -7,6 +7,7 @@ import { InteriorImage } from '../../components/common/InteriorImage';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { Section } from '../../components/layout/Section';
 import { gridSx } from '../../components/layout/grid';
+import { useScramble } from '../../motion/useScramble';
 
 // The window is the one element that never moves between the photos
 // (source 1536×1024). Each new style grows out of it.
@@ -246,28 +247,7 @@ function ScrubbedTransformation() {
                     Same window. <Box component="span" sx={{ color: colors.copper }}>Six rooms.</Box>
                   </Typography>
                 </Box>
-                {stylesWithImages.map((s, i) => (
-                  <Box
-                    key={s.id}
-                    aria-hidden={active !== i}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      opacity: active === i ? 1 : 0,
-                      transform: active === i ? 'none' : 'translateY(16px)',
-                      transition: 'opacity 500ms var(--ease), transform 700ms var(--ease)',
-                    }}
-                  >
-                    <Typography variant="overline" sx={{ opacity: 0.75, fontVariantNumeric: 'tabular-nums' }}>
-                      {String(i + 1).padStart(2, '0')} / {String(STEPS).padStart(2, '0')}
-                    </Typography>
-                    <Typography variant="h1" component="p" sx={{ fontSize: 'clamp(3.5rem, 10vw, 10rem)' }}>
-                      {s.name}
-                    </Typography>
-                  </Box>
-                ))}
+                <SceneCaption active={active} />
               </Box>
               <Box sx={{ gridColumn: { xs: '1 / -1', md: '9 / -1' }, minHeight: 48 }} aria-live="polite">
                 {style ? (
@@ -303,6 +283,33 @@ function ScrubbedTransformation() {
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+/** Counter + style name; the name decodes CAD-style when the style changes. */
+function SceneCaption({ active }: { active: number }) {
+  const name = active >= 0 ? stylesWithImages[active]!.name : stylesWithImages[0]!.name;
+  const count = `${String(Math.max(active, 0) + 1).padStart(2, '0')} / ${String(STEPS).padStart(2, '0')}`;
+  const nameRef = useScramble<HTMLParagraphElement>(name, { duration: 600 });
+  const countRef = useScramble<HTMLSpanElement>(count, { duration: 400 });
+  return (
+    <Box
+      aria-hidden={active < 0}
+      sx={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        opacity: active >= 0 ? 1 : 0,
+        transform: active >= 0 ? 'none' : 'translateY(16px)',
+        transition: 'opacity 500ms var(--ease), transform 700ms var(--ease)',
+      }}
+    >
+      <Typography variant="overline" sx={{ opacity: 0.75, fontVariantNumeric: 'tabular-nums' }}>
+        <span ref={countRef} />
+      </Typography>
+      <Typography ref={nameRef} variant="h1" component="p" sx={{ fontSize: 'clamp(3.5rem, 10vw, 10rem)', whiteSpace: 'nowrap' }} />
     </Box>
   );
 }

@@ -1,8 +1,9 @@
 import { Box, Typography } from '@mui/material';
 import { colors, fonts, layout } from '../../theme/tokens';
-import { Reveal, RevealText } from '../../components/common/Reveal';
+import { Reveal } from '../../components/common/Reveal';
 import { SectionLabel } from '../../components/common/SectionLabel';
 import { Section } from '../../components/layout/Section';
+import { ScrollTitle } from '../../motion/ScrollTitle';
 import { gridSx } from '../../components/layout/grid';
 import { Parallax } from '../../motion/Parallax';
 
@@ -36,7 +37,7 @@ export function ProcessSection() {
           }}
         >
           <SectionLabel index="06" label="How it works" />
-          <RevealText id="process-title" variant="h2" lines={['From a photo', 'to a plan,', 'calmly.']} />
+          <ScrollTitle id="process-title" lines={['From a photo', 'to a plan,', 'calmly.']} />
         </Box>
 
         <Box component="ol" sx={{ gridColumn: { xs: '1 / -1', md: '7 / -1' }, listStyle: 'none', m: 0, p: 0, display: 'grid', gap: { xs: 8, md: 14 } }}>
