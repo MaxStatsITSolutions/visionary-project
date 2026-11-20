@@ -68,6 +68,7 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: 48,
+          whiteSpace: 'nowrap',
           borderRadius: 0,
           paddingInline: 22,
           transition: `background-color ${motion.fast}ms ${motion.ease}, color ${motion.fast}ms ${motion.ease}, border-color ${motion.fast}ms ${motion.ease}, transform ${motion.fast}ms ${motion.ease}`,

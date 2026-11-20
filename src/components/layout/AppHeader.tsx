@@ -73,7 +73,8 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
           px: { xs: `${layout.gutter.xs}px`, sm: `${layout.gutter.sm}px`, md: `${layout.gutter.md}px` },
           height: layout.headerHeight,
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr auto', md: '1fr auto 1fr' },
+          // Medium screens: nav takes the free middle; wide screens: nav centred.
+          gridTemplateColumns: { xs: '1fr auto', md: 'auto 1fr auto', lg: '1fr auto 1fr' },
           borderBottom: `1px solid ${colors.ink}`,
           alignItems: 'center',
         }}
@@ -83,7 +84,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
         </Box>
 
         <Box component="nav" aria-label="Primary" sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Box component="ul" sx={{ display: 'flex', gap: 0.5, listStyle: 'none', m: 0, p: 0 }}>
+          <Box component="ul" sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, listStyle: 'none', m: 0, p: 0 }}>
             {NAV.map((item) => {
               const active = current === item.screen;
               return (
@@ -119,12 +120,17 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-          <MotionToggle sx={{ display: { xs: 'none', lg: 'inline-flex' } }} />
+          <MotionToggle sx={{ display: { xs: 'none', md: 'inline-flex' } }} />
           <Button variant="text" color="inherit" onClick={() => go('auth')} sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
             Sign in
           </Button>
           <Button variant="contained" color="primary" onClick={() => go('studio')} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-            Start a project
+            <Box component="span" sx={{ display: { xs: 'inline', md: 'none', lg: 'inline' } }}>
+              Start a project
+            </Box>
+            <Box component="span" sx={{ display: { xs: 'none', md: 'inline', lg: 'none' } }}>
+              Start →
+            </Box>
           </Button>
           <IconButton
             aria-label="Open menu"

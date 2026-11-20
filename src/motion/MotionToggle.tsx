@@ -14,7 +14,7 @@ export function MotionToggle({ sx }: { sx?: SxProps<Theme> }) {
       size="small"
       aria-pressed={!reduced}
       onClick={() => setMotionPref(reduced ? 'on' : 'off')}
-      sx={[{ gap: 1, px: 1.5 }, ...(Array.isArray(sx) ? sx : [sx])]}
+      sx={[{ gap: 1, px: 1.5, fontSize: '0.78rem' }, ...(Array.isArray(sx) ? sx : [sx])]}
     >
       <Box
         component="span"
