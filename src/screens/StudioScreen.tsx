@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Form, Formik } from 'formik';
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -33,6 +34,12 @@ const budgetRanges = [
   '5 000 – 10 000 €',
   'Над 10 000 €',
 ];
+
+// Правила за снимката (раздел 12.4 от спецификацията).
+const allowedPhotoTypes = ['image/jpeg', 'image/png', 'image/webp'];
+const maxPhotoSize = 10 * 1024 * 1024; // 10 MB
+
+type PhotoSelection = { file: File; previewUrl: string };
 
 type StudioFormValues = {
   title: string;
@@ -72,6 +79,47 @@ function validateStep(values: StudioFormValues, step: number) {
 export function StudioScreen() {
   const [activeStep, setActiveStep] = useState(0);
 
+  // Снимката се държи отделно от Formik, като обикновен File обект.
+  const [photo, setPhoto] = useState<PhotoSelection | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  // Когато излезем от екрана, освобождаваме паметта на preview адреса.
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    };
+  }, []);
+
+  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // позволява да избереш същия файл отново
+    if (!file) return;
+
+    if (!allowedPhotoTypes.includes(file.type)) {
+      setPhotoError('Позволени формати: JPEG, PNG или WebP.');
+      return;
+    }
+    if (file.size > maxPhotoSize) {
+      setPhotoError('Снимката е твърде голяма. Максимумът е 10 MB.');
+      return;
+    }
+
+    setPhotoError(null);
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    const previewUrl = URL.createObjectURL(file);
+    previewUrlRef.current = previewUrl;
+    setPhoto({ file, previewUrl });
+  }
+
+  function handleRemovePhoto() {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
+    setPhoto(null);
+    setPhotoError(null);
+  }
+
   return (
     <Box sx={{ p: 4, maxWidth: 720, mx: 'auto' }}>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -91,7 +139,7 @@ export function StudioScreen() {
         validate={(values) => validateStep(values, activeStep)}
         onSubmit={(values) => {
           // Засега само показваме данните в конзолата. Supabase идва по-късно.
-          console.log('Проект:', values);
+          console.log('Проект:', values, 'Снимка:', photo?.file);
         }}
       >
         {({
@@ -214,7 +262,81 @@ export function StudioScreen() {
               </Box>
             )}
 
-            {activeStep > 1 && (
+            {activeStep === 2 && (
+              <Box sx={{ display: 'grid', gap: 3 }}>
+                <Box>
+                  <Typography variant="h6" component="h2" gutterBottom>
+                    Снимка на помещението (по желание)
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    JPEG, PNG или WebP, до 10 MB. Снимката още не се качва никъде.
+                    Ще се качи само след твоето потвърждение в последната стъпка.
+                  </Typography>
+                </Box>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  hidden
+                  onChange={handlePhotoChange}
+                />
+
+                {photoError && (
+                  <Alert severity="error" role="alert">
+                    {photoError}
+                  </Alert>
+                )}
+
+                {photo ? (
+                  <Box sx={{ display: 'grid', gap: 2 }}>
+                    <Box
+                      component="img"
+                      src={photo.previewUrl}
+                      alt="Преглед на избраната снимка"
+                      sx={{
+                        width: '100%',
+                        maxHeight: 360,
+                        objectFit: 'cover',
+                        borderRadius: 1,
+                      }}
+                    />
+                    <Typography variant="body2">
+                      {photo.file.name} ({(photo.file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      <Button
+                        type="button"
+                        variant="outlined"
+                        sx={{ minHeight: 44 }}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Смени снимката
+                      </Button>
+                      <Button
+                        type="button"
+                        color="error"
+                        sx={{ minHeight: 44 }}
+                        onClick={handleRemovePhoto}
+                      >
+                        Премахни
+                      </Button>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    sx={{ minHeight: 44, justifySelf: 'start' }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Избери снимка
+                  </Button>
+                )}
+              </Box>
+            )}
+
+            {activeStep > 2 && (
               <Typography>Стъпка „{steps[activeStep]}“ ще я направим следващата.</Typography>
             )}
 
