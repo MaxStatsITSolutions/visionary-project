@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { Form, Formik } from 'formik';
+import { Form, Formik, useFormikContext } from 'formik';
 import {
   Alert,
   Box,
@@ -60,6 +60,54 @@ const initialValues: StudioFormValues = {
   notes: '',
 };
 
+// ---------- Локална чернова (само в този браузър) ----------
+
+const DRAFT_KEY = 'visionary:studio-draft';
+
+type StudioDraft = { values: StudioFormValues; activeStep: number };
+
+function loadDraft(): StudioDraft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Partial<StudioDraft>;
+    if (!data.values || typeof data.activeStep !== 'number') return null;
+    return {
+      values: { ...initialValues, ...data.values },
+      activeStep: Math.min(Math.max(data.activeStep, 0), steps.length - 1),
+    };
+  } catch {
+    return null; // повредена чернова или недостъпно хранилище
+  }
+}
+
+function saveDraft(draft: StudioDraft) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Ако браузърът не позволява запис, просто продължаваме без чернова.
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // нищо за правене
+  }
+}
+
+// Невидим компонент: при всяка промяна запазва черновата.
+function DraftSaver({ activeStep }: { activeStep: number }) {
+  const { values } = useFormikContext<StudioFormValues>();
+  useEffect(() => {
+    saveDraft({ values, activeStep });
+  }, [values, activeStep]);
+  return null;
+}
+
+// ---------- Валидация ----------
+
 // Кои полета принадлежат на коя стъпка (за "touched" при грешка).
 const fieldsByStep: Record<number, (keyof StudioFormValues)[]> = {
   0: ['title', 'roomType'],
@@ -119,7 +167,12 @@ function ReviewRow({
 }
 
 export function StudioScreen() {
-  const [activeStep, setActiveStep] = useState(0);
+  // Черновата се чете само веднъж, при отваряне на екрана.
+  const [draft, setDraft] = useState<StudioDraft | null>(loadDraft);
+  const [draftRestored, setDraftRestored] = useState(draft !== null);
+  const [formKey, setFormKey] = useState(0);
+
+  const [activeStep, setActiveStep] = useState(draft?.activeStep ?? 0);
   const [saved, setSaved] = useState(false);
 
   // Снимката се държи отделно от Formik, като обикновен File обект.
@@ -166,10 +219,15 @@ export function StudioScreen() {
     setPhotoConfirmed(false);
   }
 
+  // Изчиства всичко: чернова, снимка и форма.
   function handleStartOver() {
+    clearDraft();
+    setDraft(null);
+    setDraftRestored(false);
     handleRemovePhoto();
     setSaved(false);
     setActiveStep(0);
+    setFormKey((key) => key + 1); // кара Formik да започне с празни полета
   }
 
   return (
@@ -185,6 +243,27 @@ export function StudioScreen() {
           </Step>
         ))}
       </Stepper>
+
+      {draftRestored && !saved && (
+        <Alert
+          severity="info"
+          sx={{ mb: 3 }}
+          onClose={() => setDraftRestored(false)}
+          action={
+            <Button
+              type="button"
+              color="inherit"
+              size="small"
+              sx={{ minHeight: 44 }}
+              onClick={handleStartOver}
+            >
+              Започни отначало
+            </Button>
+          }
+        >
+          Възстановихме твоята чернова. Снимката не се пази, избери я отново, ако ти е нужна.
+        </Alert>
+      )}
 
       {saved ? (
         <Box sx={{ display: 'grid', gap: 3 }}>
@@ -203,11 +282,13 @@ export function StudioScreen() {
         </Box>
       ) : (
         <Formik<StudioFormValues>
-          initialValues={initialValues}
+          key={formKey}
+          initialValues={draft?.values ?? initialValues}
           validate={(values) => validateStep(values, activeStep)}
           onSubmit={(values) => {
             // Засега само показваме данните в конзолата. Supabase идва по-късно.
             console.log('Проект:', values, 'Снимка:', photo?.file);
+            clearDraft(); // проектът е завършен, черновата вече не е нужна
             setSaved(true);
             setActiveStep(steps.length); // всички стъпки са "завършени"
           }}
@@ -223,6 +304,8 @@ export function StudioScreen() {
             setFieldValue,
           }) => (
             <Form>
+              <DraftSaver activeStep={activeStep} />
+
               {activeStep === 0 && (
                 <Box sx={{ display: 'grid', gap: 3 }}>
                   <TextField
