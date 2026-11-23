@@ -7,6 +7,9 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  Checkbox,
+  Divider,
+  FormControlLabel,
   FormHelperText,
   MenuItem,
   Step,
@@ -76,12 +79,53 @@ function validateStep(values: StudioFormValues, step: number) {
   return errors;
 }
 
+// Един ред в прегледа: етикет, стойност и бутон "Промени".
+function ReviewRow({
+  label,
+  value,
+  onEdit,
+}: {
+  label: string;
+  value: string;
+  onEdit: () => void;
+}) {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 2,
+        py: 1.5,
+      }}
+    >
+      <Box>
+        <Typography variant="body2" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography sx={{ whiteSpace: 'pre-wrap' }}>{value}</Typography>
+      </Box>
+      <Button
+        type="button"
+        size="small"
+        onClick={onEdit}
+        sx={{ minHeight: 44, flexShrink: 0 }}
+        aria-label={`Промени: ${label}`}
+      >
+        Промени
+      </Button>
+    </Box>
+  );
+}
+
 export function StudioScreen() {
   const [activeStep, setActiveStep] = useState(0);
+  const [saved, setSaved] = useState(false);
 
   // Снимката се държи отделно от Formik, като обикновен File обект.
   const [photo, setPhoto] = useState<PhotoSelection | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoConfirmed, setPhotoConfirmed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlRef = useRef<string | null>(null);
 
@@ -107,6 +151,7 @@ export function StudioScreen() {
     }
 
     setPhotoError(null);
+    setPhotoConfirmed(false); // нова снимка = ново потвърждение
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     const previewUrl = URL.createObjectURL(file);
     previewUrlRef.current = previewUrl;
@@ -118,6 +163,13 @@ export function StudioScreen() {
     previewUrlRef.current = null;
     setPhoto(null);
     setPhotoError(null);
+    setPhotoConfirmed(false);
+  }
+
+  function handleStartOver() {
+    handleRemovePhoto();
+    setSaved(false);
+    setActiveStep(0);
   }
 
   return (
@@ -134,250 +186,341 @@ export function StudioScreen() {
         ))}
       </Stepper>
 
-      <Formik<StudioFormValues>
-        initialValues={initialValues}
-        validate={(values) => validateStep(values, activeStep)}
-        onSubmit={(values) => {
-          // Засега само показваме данните в конзолата. Supabase идва по-късно.
-          console.log('Проект:', values, 'Снимка:', photo?.file);
-        }}
-      >
-        {({
-          values,
-          errors,
-          touched,
-          handleChange,
-          handleBlur,
-          validateForm,
-          setTouched,
-          setFieldValue,
-        }) => (
-          <Form>
-            {activeStep === 0 && (
-              <Box sx={{ display: 'grid', gap: 3 }}>
-                <TextField
-                  name="title"
-                  label="Име на проекта"
-                  fullWidth
-                  value={values.title}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={Boolean(touched.title && errors.title)}
-                  helperText={touched.title && errors.title}
-                />
-                <TextField
-                  select
-                  name="roomType"
-                  label="Помещение"
-                  fullWidth
-                  value={values.roomType}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={Boolean(touched.roomType && errors.roomType)}
-                  helperText={touched.roomType && errors.roomType}
-                >
-                  {roomTypes.map((room) => (
-                    <MenuItem key={room} value={room}>
-                      {room}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-            )}
-
-            {activeStep === 1 && (
-              <Box sx={{ display: 'grid', gap: 3 }}>
-                <Box>
-                  <Typography variant="h6" component="h2" gutterBottom>
-                    Избери стил
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-                      gap: 2,
-                    }}
+      {saved ? (
+        <Box sx={{ display: 'grid', gap: 3 }}>
+          <Alert severity="success" role="status">
+            Проектът е готов. Засега е само преглед: запазването в Supabase
+            ще се добави по-късно.
+          </Alert>
+          <Button
+            type="button"
+            variant="contained"
+            sx={{ minHeight: 44, justifySelf: 'start' }}
+            onClick={handleStartOver}
+          >
+            Нов проект
+          </Button>
+        </Box>
+      ) : (
+        <Formik<StudioFormValues>
+          initialValues={initialValues}
+          validate={(values) => validateStep(values, activeStep)}
+          onSubmit={(values) => {
+            // Засега само показваме данните в конзолата. Supabase идва по-късно.
+            console.log('Проект:', values, 'Снимка:', photo?.file);
+            setSaved(true);
+            setActiveStep(steps.length); // всички стъпки са "завършени"
+          }}
+        >
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            validateForm,
+            setTouched,
+            setFieldValue,
+          }) => (
+            <Form>
+              {activeStep === 0 && (
+                <Box sx={{ display: 'grid', gap: 3 }}>
+                  <TextField
+                    name="title"
+                    label="Име на проекта"
+                    fullWidth
+                    value={values.title}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={Boolean(touched.title && errors.title)}
+                    helperText={touched.title && errors.title}
+                  />
+                  <TextField
+                    select
+                    name="roomType"
+                    label="Помещение"
+                    fullWidth
+                    value={values.roomType}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={Boolean(touched.roomType && errors.roomType)}
+                    helperText={touched.roomType && errors.roomType}
                   >
-                    {interiorStyles.map((style) => {
-                      const selected = values.interiorStyle === style.name;
-                      return (
-                        <Card
-                          key={style.name}
-                          variant="outlined"
-                          sx={{
-                            borderWidth: 2,
-                            borderColor: selected ? 'primary.main' : 'divider',
-                          }}
-                        >
-                          <CardActionArea
-                            aria-pressed={selected}
-                            onClick={() => setFieldValue('interiorStyle', style.name)}
-                            sx={{ minHeight: 44 }}
+                    {roomTypes.map((room) => (
+                      <MenuItem key={room} value={room}>
+                        {room}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
+              )}
+
+              {activeStep === 1 && (
+                <Box sx={{ display: 'grid', gap: 3 }}>
+                  <Box>
+                    <Typography variant="h6" component="h2" gutterBottom>
+                      Избери стил
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                        gap: 2,
+                      }}
+                    >
+                      {interiorStyles.map((style) => {
+                        const selected = values.interiorStyle === style.name;
+                        return (
+                          <Card
+                            key={style.name}
+                            variant="outlined"
+                            sx={{
+                              borderWidth: 2,
+                              borderColor: selected ? 'primary.main' : 'divider',
+                            }}
                           >
-                            <CardContent>
-                              <Typography variant="subtitle1" component="h3">
-                                {style.name}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {style.description}
-                              </Typography>
-                            </CardContent>
-                          </CardActionArea>
-                        </Card>
-                      );
-                    })}
+                            <CardActionArea
+                              aria-pressed={selected}
+                              onClick={() => setFieldValue('interiorStyle', style.name)}
+                              sx={{ minHeight: 44 }}
+                            >
+                              <CardContent>
+                                <Typography variant="subtitle1" component="h3">
+                                  {style.name}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {style.description}
+                                </Typography>
+                              </CardContent>
+                            </CardActionArea>
+                          </Card>
+                        );
+                      })}
+                    </Box>
+                    {touched.interiorStyle && errors.interiorStyle && (
+                      <FormHelperText error>{errors.interiorStyle}</FormHelperText>
+                    )}
                   </Box>
-                  {touched.interiorStyle && errors.interiorStyle && (
-                    <FormHelperText error>{errors.interiorStyle}</FormHelperText>
+
+                  <TextField
+                    select
+                    name="budgetRange"
+                    label="Бюджет (по желание)"
+                    fullWidth
+                    value={values.budgetRange}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  >
+                    <MenuItem value="">Не искам да посочвам</MenuItem>
+                    {budgetRanges.map((range) => (
+                      <MenuItem key={range} value={range}>
+                        {range}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    name="notes"
+                    label="Бележки (по желание)"
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    value={values.notes}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </Box>
+              )}
+
+              {activeStep === 2 && (
+                <Box sx={{ display: 'grid', gap: 3 }}>
+                  <Box>
+                    <Typography variant="h6" component="h2" gutterBottom>
+                      Снимка на помещението (по желание)
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      JPEG, PNG или WebP, до 10 MB. Снимката още не се качва никъде.
+                      Ще се качи само след твоето потвърждение в последната стъпка.
+                    </Typography>
+                  </Box>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                    onChange={handlePhotoChange}
+                  />
+
+                  {photoError && (
+                    <Alert severity="error" role="alert">
+                      {photoError}
+                    </Alert>
+                  )}
+
+                  {photo ? (
+                    <Box sx={{ display: 'grid', gap: 2 }}>
+                      <Box
+                        component="img"
+                        src={photo.previewUrl}
+                        alt="Преглед на избраната снимка"
+                        sx={{
+                          width: '100%',
+                          maxHeight: 360,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                        }}
+                      />
+                      <Typography variant="body2">
+                        {photo.file.name} ({(photo.file.size / (1024 * 1024)).toFixed(2)} MB)
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          sx={{ minHeight: 44 }}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Смени снимката
+                        </Button>
+                        <Button
+                          type="button"
+                          color="error"
+                          sx={{ minHeight: 44 }}
+                          onClick={handleRemovePhoto}
+                        >
+                          Премахни
+                        </Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      sx={{ minHeight: 44, justifySelf: 'start' }}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Избери снимка
+                    </Button>
                   )}
                 </Box>
+              )}
 
-                <TextField
-                  select
-                  name="budgetRange"
-                  label="Бюджет (по желание)"
-                  fullWidth
-                  value={values.budgetRange}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                >
-                  <MenuItem value="">Не искам да посочвам</MenuItem>
-                  {budgetRanges.map((range) => (
-                    <MenuItem key={range} value={range}>
-                      {range}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  name="notes"
-                  label="Бележки (по желание)"
-                  fullWidth
-                  multiline
-                  minRows={3}
-                  value={values.notes}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-              </Box>
-            )}
-
-            {activeStep === 2 && (
-              <Box sx={{ display: 'grid', gap: 3 }}>
-                <Box>
-                  <Typography variant="h6" component="h2" gutterBottom>
-                    Снимка на помещението (по желание)
+              {activeStep === 3 && (
+                <Box sx={{ display: 'grid', gap: 2 }}>
+                  <Typography variant="h6" component="h2">
+                    Преглед на проекта
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    JPEG, PNG или WebP, до 10 MB. Снимката още не се качва никъде.
-                    Ще се качи само след твоето потвърждение в последната стъпка.
-                  </Typography>
-                </Box>
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  hidden
-                  onChange={handlePhotoChange}
-                />
-
-                {photoError && (
-                  <Alert severity="error" role="alert">
-                    {photoError}
-                  </Alert>
-                )}
-
-                {photo ? (
-                  <Box sx={{ display: 'grid', gap: 2 }}>
-                    <Box
-                      component="img"
-                      src={photo.previewUrl}
-                      alt="Преглед на избраната снимка"
-                      sx={{
-                        width: '100%',
-                        maxHeight: 360,
-                        objectFit: 'cover',
-                        borderRadius: 1,
-                      }}
+                  <Box>
+                    <ReviewRow
+                      label="Име на проекта"
+                      value={values.title}
+                      onEdit={() => setActiveStep(0)}
                     />
-                    <Typography variant="body2">
-                      {photo.file.name} ({(photo.file.size / (1024 * 1024)).toFixed(2)} MB)
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Button
-                        type="button"
-                        variant="outlined"
-                        sx={{ minHeight: 44 }}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        Смени снимката
-                      </Button>
-                      <Button
-                        type="button"
-                        color="error"
-                        sx={{ minHeight: 44 }}
-                        onClick={handleRemovePhoto}
-                      >
-                        Премахни
-                      </Button>
-                    </Box>
+                    <Divider />
+                    <ReviewRow
+                      label="Помещение"
+                      value={values.roomType}
+                      onEdit={() => setActiveStep(0)}
+                    />
+                    <Divider />
+                    <ReviewRow
+                      label="Стил"
+                      value={values.interiorStyle}
+                      onEdit={() => setActiveStep(1)}
+                    />
+                    <Divider />
+                    <ReviewRow
+                      label="Бюджет"
+                      value={values.budgetRange || 'Не е посочен'}
+                      onEdit={() => setActiveStep(1)}
+                    />
+                    <Divider />
+                    <ReviewRow
+                      label="Бележки"
+                      value={values.notes.trim() || 'Няма бележки'}
+                      onEdit={() => setActiveStep(1)}
+                    />
+                    <Divider />
+                    <ReviewRow
+                      label="Снимка"
+                      value={photo ? photo.file.name : 'Не е избрана'}
+                      onEdit={() => setActiveStep(2)}
+                    />
                   </Box>
+
+                  {photo && (
+                    <>
+                      <Box
+                        component="img"
+                        src={photo.previewUrl}
+                        alt="Избраната снимка на помещението"
+                        sx={{
+                          width: '100%',
+                          maxHeight: 280,
+                          objectFit: 'cover',
+                          borderRadius: 1,
+                        }}
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={photoConfirmed}
+                            onChange={(event) => setPhotoConfirmed(event.target.checked)}
+                          />
+                        }
+                        label="Потвърждавам, че тази снимка може да бъде качена към проекта."
+                      />
+                    </>
+                  )}
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+                <Button
+                  key="back"
+                  type="button"
+                  disabled={activeStep === 0}
+                  onClick={() => setActiveStep((s) => s - 1)}
+                >
+                  Назад
+                </Button>
+
+                {activeStep < steps.length - 1 ? (
+                  <Button
+                    key="next"
+                    type="button"
+                    variant="contained"
+                    onClick={async () => {
+                      const stepErrors = await validateForm();
+                      if (Object.keys(stepErrors).length === 0) {
+                        setActiveStep((s) => s + 1);
+                      } else {
+                        const toTouch = fieldsByStep[activeStep] ?? [];
+                        setTouched(
+                          Object.fromEntries(toTouch.map((field) => [field, true])),
+                        );
+                      }
+                    }}
+                  >
+                    Напред
+                  </Button>
                 ) : (
                   <Button
-                    type="button"
-                    variant="outlined"
-                    sx={{ minHeight: 44, justifySelf: 'start' }}
-                    onClick={() => fileInputRef.current?.click()}
+                    key="save"
+                    type="submit"
+                    variant="contained"
+                    disabled={Boolean(photo) && !photoConfirmed}
                   >
-                    Избери снимка
+                    Запази
                   </Button>
                 )}
               </Box>
-            )}
-
-            {activeStep > 2 && (
-              <Typography>Стъпка „{steps[activeStep]}“ ще я направим следващата.</Typography>
-            )}
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-              <Button
-                key="back"
-                type="button"
-                disabled={activeStep === 0}
-                onClick={() => setActiveStep((s) => s - 1)}
-              >
-                Назад
-              </Button>
-
-              {activeStep < steps.length - 1 ? (
-                <Button
-                  key="next"
-                  type="button"
-                  variant="contained"
-                  onClick={async () => {
-                    const stepErrors = await validateForm();
-                    if (Object.keys(stepErrors).length === 0) {
-                      setActiveStep((s) => s + 1);
-                    } else {
-                      const toTouch = fieldsByStep[activeStep] ?? [];
-                      setTouched(
-                        Object.fromEntries(toTouch.map((field) => [field, true])),
-                      );
-                    }
-                  }}
-                >
-                  Напред
-                </Button>
-              ) : (
-                <Button key="save" type="submit" variant="contained">
-                  Запази
-                </Button>
-              )}
-            </Box>
-          </Form>
-        )}
-      </Formik>
+            </Form>
+          )}
+        </Formik>
+      )}
     </Box>
   );
 }
