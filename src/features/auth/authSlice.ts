@@ -1,4 +1,4 @@
-import { createSlice, type PayloadActions} from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction} from '@reduxjs/toolkit';
 
 export type AuthUser = {
   id: string;
