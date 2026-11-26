@@ -11,6 +11,8 @@ import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import AuthScreen from './screens/AuthScreen';
 import ConnectionCheckScreen from './screens/ConnectionCheckScreen';
 import { StudioScreen } from './screens/StudioScreen';
+import { ProjectsScreen } from './screens/ProjectsScreen';
+import { ProjectDetailsScreen } from './screens/ProjectDetailsScreen';
 import { layout } from './theme/tokens';
 import { IntroContext } from './motion/IntroContext';
 import { Preloader } from './motion/Preloader';
@@ -36,7 +38,7 @@ function ScreenFrame({ children }: { children: ReactNode }) {
   return <Box sx={{ pt: `${layout.headerHeight + 24}px`, pb: 12, minHeight: '70vh' }}>{children}</Box>;
 }
 
-function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => void) {
+function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => void, projectId: string | null) {
   switch (current) {
     case 'home':
       return <HomeScreen onNavigate={navigate} />;
@@ -55,6 +57,18 @@ function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => vo
           <StudioScreen />
         </ScreenFrame>
       );
+    case 'projects':
+      return (
+        <ScreenFrame>
+          <ProjectsScreen onNavigate={navigate} />
+        </ScreenFrame>
+      );
+    case 'project-details':
+      return (
+        <ScreenFrame>
+          <ProjectDetailsScreen projectId={projectId} onNavigate={navigate} />
+        </ScreenFrame>
+      );
     default:
       return <PlaceholderScreen title={TITLES[current]} onNavigate={navigate} />;
   }
@@ -62,6 +76,11 @@ function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => vo
 
 export default function App() {
   const current = useAppSelector((state) => state.navigation.currentScreen);
+  const selectedProjectId = useAppSelector((state) => state.navigation.selectedProjectId);
+  // Opening a project (from the list) starts at the top of its sheet.
+  useEffect(() => {
+    if (selectedProjectId) window.scrollTo({ top: 0 });
+  }, [selectedProjectId]);
   const dispatch = useAppDispatch();
   const [introDone, setIntroDone] = useState(false);
   const finishIntro = useCallback(() => setIntroDone(true), []);
@@ -105,7 +124,7 @@ export default function App() {
           boxShadow: '0 40px 80px -40px rgba(25,27,26,0.35)',
         }}
       >
-        {renderScreen(current, navigate)}
+        {renderScreen(current, navigate, selectedProjectId)}
       </Box>
       <Box sx={{ position: { md: 'sticky' }, bottom: 0, zIndex: 0 }}>
         <AppFooter onNavigate={navigate} />

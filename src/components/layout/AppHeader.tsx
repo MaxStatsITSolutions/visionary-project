@@ -3,6 +3,7 @@ import { Box, Button, ButtonBase, Drawer, IconButton, Typography } from '@mui/ma
 import type { Navigate, NavigableScreen, Screen } from '../../types/navigation';
 import { colors, fonts, layout, motion, width } from '../../theme/tokens';
 import { MotionToggle } from '../../motion/MotionToggle';
+import { useAppSelector } from '../../store/hooks';
 
 const NAV: { screen: NavigableScreen; label: string }[] = [
   { screen: 'explore', label: 'Explore' },
@@ -38,6 +39,10 @@ export function Wordmark({ onClick, tone = 'dark' }: { onClick?: () => void; ton
 }
 
 export function AppHeader({ current, onNavigate }: AppHeaderProps) {
+  // Signed-in visitors also get their project register; "Sign in" becomes "Account".
+  const signedIn = useAppSelector((state) => state.auth.status === 'signedIn');
+  const nav = signedIn ? [...NAV, { screen: 'projects' as const, label: 'My projects' }] : NAV;
+  const accountLabel = signedIn ? 'Account' : 'Sign in';
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -85,7 +90,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
 
         <Box component="nav" aria-label="Primary" sx={{ display: { xs: 'none', md: 'block' } }}>
           <Box component="ul" sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, listStyle: 'none', m: 0, p: 0 }}>
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = current === item.screen;
               return (
                 <li key={item.screen}>
@@ -122,7 +127,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
           <MotionToggle sx={{ display: { xs: 'none', md: 'inline-flex' } }} />
           <Button variant="text" color="inherit" onClick={() => go('auth')} sx={{ display: { xs: 'none', md: 'inline-flex' } }}>
-            Sign in
+            {accountLabel}
           </Button>
           <Button variant="contained" color="primary" onClick={() => go('studio')} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
             <Box component="span" sx={{ display: { xs: 'inline', md: 'none', lg: 'inline' } }}>
@@ -162,7 +167,7 @@ export function AppHeader({ current, onNavigate }: AppHeaderProps) {
           </IconButton>
         </Box>
         <Box component="nav" aria-label="Mobile" sx={{ px: `${layout.gutter.xs}px`, pt: 6, pb: 4, display: 'grid', gap: 1 }}>
-          {[...NAV, { screen: 'auth' as const, label: 'Sign in' }].map((item, i) => (
+          {[...nav, { screen: 'auth' as const, label: accountLabel }].map((item, i) => (
             <ButtonBase
               key={item.screen}
               onClick={() => go(item.screen)}
