@@ -14,7 +14,7 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    event.target.value = ''; // позволява да избереш същия файл отново
+    event.target.value = ''; // lets the user pick the same file again
     if (file) onSelect(file);
   }
 
@@ -22,11 +22,11 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
     <Box sx={{ display: 'grid', gap: 3 }}>
       <Box>
         <Typography variant="h6" component="h2" gutterBottom>
-          Снимка на помещението (по желание)
+          Photo of the room (optional)
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          JPEG, PNG или WebP, до 10 MB. Снимката още не се качва никъде.
-          Ще се качи само след твоето потвърждение в последната стъпка.
+          JPEG, PNG or WebP, up to 10 MB. The photo is not uploaded yet. It will only be
+          uploaded after you confirm it in the last step.
         </Typography>
       </Box>
 
@@ -49,7 +49,7 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
           <Box
             component="img"
             src={photo.previewUrl}
-            alt="Преглед на избраната снимка"
+            alt="Preview of the selected photo"
             sx={{
               width: '100%',
               maxHeight: 360,
@@ -67,7 +67,7 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
               sx={{ minHeight: 44 }}
               onClick={() => fileInputRef.current?.click()}
             >
-              Смени снимката
+              Change photo
             </Button>
             <Button
               type="button"
@@ -75,7 +75,7 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
               sx={{ minHeight: 44 }}
               onClick={onRemove}
             >
-              Премахни
+              Remove
             </Button>
           </Box>
         </Box>
@@ -86,7 +86,7 @@ export function PhotoStep({ photo, photoError, onSelect, onRemove }: PhotoStepPr
           sx={{ minHeight: 44, justifySelf: 'start' }}
           onClick={() => fileInputRef.current?.click()}
         >
-          Избери снимка
+          Choose a photo
         </Button>
       )}
     </Box>

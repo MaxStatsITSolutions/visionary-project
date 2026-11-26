@@ -17,11 +17,11 @@ export function usePhotoSelection() {
 
   function selectPhoto(file: File) {
     if (!allowedPhotoTypes.includes(file.type)) {
-      setPhotoError('Позволени формати: JPEG, PNG или WebP.');
+      setPhotoError('Allowed formats: JPEG, PNG or WebP.');
       return;
     }
     if (file.size > maxPhotoSize) {
-      setPhotoError('Снимката е твърде голяма. Максимумът е 10 MB.');
+      setPhotoError('This photo is too large. The maximum size is 10 MB.');
       return;
     }
 

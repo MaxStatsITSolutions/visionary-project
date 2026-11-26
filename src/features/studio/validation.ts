@@ -1,20 +1,21 @@
 import type { StudioFormValues } from './types';
 
-// Кои полета принадлежат на коя стъпка (за "touched" при грешка).
+// Which fields belong to which step (used to mark them as touched on error).
 export const fieldsByStep: Record<number, (keyof StudioFormValues)[]> = {
   0: ['title', 'roomType'],
   1: ['interiorStyle'],
 };
 
-// Проверява само полетата на текущата стъпка.
+// Validates only the fields of the current step.
 export function validateStep(values: StudioFormValues, step: number) {
   const errors: Partial<Record<keyof StudioFormValues, string>> = {};
   if (step === 0) {
-    if (!values.title.trim()) errors.title = 'Въведи име на проекта';
-    if (!values.roomType) errors.roomType = 'Избери помещение';
+    if (!values.title.trim()) errors.title = 'Enter a project name';
+    else if (values.title.trim().length > 120) errors.title = 'The name can be up to 120 characters';
+    if (!values.roomType) errors.roomType = 'Choose a room type';
   }
   if (step === 1) {
-    if (!values.interiorStyle) errors.interiorStyle = 'Избери интериорен стил';
+    if (!values.interiorStyle) errors.interiorStyle = 'Choose an interior style';
   }
   return errors;
 }

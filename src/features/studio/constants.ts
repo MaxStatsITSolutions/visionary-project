@@ -1,26 +1,26 @@
 import type { StudioFormValues } from './types';
 
-export const steps = ['Детайли', 'Стил', 'Снимка', 'Преглед'];
+export const steps = ['Details', 'Style', 'Photo', 'Review'];
 
-export const roomTypes = ['Хол', 'Спалня', 'Кухня', 'Баня', 'Офис'];
+export const roomTypes = ['Living room', 'Bedroom', 'Kitchen', 'Bathroom', 'Office'];
 
 export const interiorStyles = [
-  { name: 'Скандинавски', description: 'Светло, уютно, естествено дърво' },
-  { name: 'Модерен', description: 'Чисти линии и прости форми' },
-  { name: 'Минималистичен', description: 'Малко мебели, много въздух' },
-  { name: 'Класически', description: 'Елегантни детайли и симетрия' },
-  { name: 'Индустриален', description: 'Тухла, метал и суров бетон' },
-  { name: 'Бохо', description: 'Цветно, меко и с много растения' },
+  { name: 'Scandinavian', description: 'Light, cozy, natural wood' },
+  { name: 'Modern', description: 'Clean lines and simple forms' },
+  { name: 'Minimalist', description: 'Few pieces, lots of space' },
+  { name: 'Classic', description: 'Elegant details and symmetry' },
+  { name: 'Industrial', description: 'Brick, metal and raw concrete' },
+  { name: 'Boho', description: 'Colorful, soft and full of plants' },
 ];
 
 export const budgetRanges = [
-  'До 2 000 €',
-  '2 000 – 5 000 €',
-  '5 000 – 10 000 €',
-  'Над 10 000 €',
+  'Up to €2,000',
+  '€2,000 – €5,000',
+  '€5,000 – €10,000',
+  'Over €10,000',
 ];
 
-// Правила за снимката (раздел 12.4 от спецификацията).
+// Photo rules (section 12.4 of the spec).
 export const allowedPhotoTypes = ['image/jpeg', 'image/png', 'image/webp'];
 export const maxPhotoSize = 10 * 1024 * 1024; // 10 MB
 

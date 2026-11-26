@@ -11,7 +11,7 @@ export function DetailsStep() {
     <Box sx={{ display: 'grid', gap: 3 }}>
       <TextField
         name="title"
-        label="Име на проекта"
+        label="Project name"
         fullWidth
         value={values.title}
         onChange={handleChange}
@@ -22,7 +22,7 @@ export function DetailsStep() {
       <TextField
         select
         name="roomType"
-        label="Помещение"
+        label="Room type"
         fullWidth
         value={values.roomType}
         onChange={handleChange}

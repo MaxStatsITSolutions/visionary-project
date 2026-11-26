@@ -1,7 +1,7 @@
 import { initialValues, steps } from './constants';
 import type { StudioDraft } from './types';
 
-const DRAFT_KEY = 'visionary:studio-draft';
+const DRAFT_KEY = 'visionary:studio-draft-v2';
 
 export function loadDraft(): StudioDraft | null {
   try {

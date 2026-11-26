@@ -20,7 +20,7 @@ export function StyleStep() {
     <Box sx={{ display: 'grid', gap: 3 }}>
       <Box>
         <Typography variant="h6" component="h2" gutterBottom>
-          Избери стил
+          Choose a style
         </Typography>
         <Box
           sx={{
@@ -66,13 +66,13 @@ export function StyleStep() {
       <TextField
         select
         name="budgetRange"
-        label="Бюджет (по желание)"
+        label="Budget (optional)"
         fullWidth
         value={values.budgetRange}
         onChange={handleChange}
         onBlur={handleBlur}
       >
-        <MenuItem value="">Не искам да посочвам</MenuItem>
+        <MenuItem value="">I would rather not say</MenuItem>
         {budgetRanges.map((range) => (
           <MenuItem key={range} value={range}>
             {range}
@@ -82,7 +82,7 @@ export function StyleStep() {
 
       <TextField
         name="notes"
-        label="Бележки (по желание)"
+        label="Notes (optional)"
         fullWidth
         multiline
         minRows={3}

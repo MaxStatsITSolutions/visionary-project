@@ -8,18 +8,16 @@ import { ReviewStep } from '../features/studio/components/ReviewStep';
 import { StyleStep } from '../features/studio/components/StyleStep';
 import { initialValues, steps } from '../features/studio/constants';
 import { clearDraft, loadDraft } from '../features/studio/draft';
-import type { StudioSaveHandler } from '../features/studio/saveProject';
+import { saveStudioProject } from '../features/studio/saveProject';
 import type { StudioDraft, StudioFormValues } from '../features/studio/types';
 import { usePhotoSelection } from '../features/studio/usePhotoSelection';
 import { fieldsByStep, validateStep } from '../features/studio/validation';
+import { useAppSelector } from '../store/hooks';
 
-type StudioScreenProps = {
-  // Ако не е подадена, екранът работи в демо режим (само печата в конзолата).
-  onSave?: StudioSaveHandler;
-};
+export function StudioScreen() {
+  const user = useAppSelector((state) => state.auth.user);
 
-export function StudioScreen({ onSave }: StudioScreenProps) {
-  // Черновата се чете само веднъж, при отваряне на екрана.
+  // The draft is read only once, when the screen opens.
   const [draft, setDraft] = useState<StudioDraft | null>(loadDraft);
   const [draftRestored, setDraftRestored] = useState(draft !== null);
   const [formKey, setFormKey] = useState(0);
@@ -37,7 +35,7 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
     removePhoto,
   } = usePhotoSelection();
 
-  // Изчиства всичко: чернова, снимка и форма.
+  // Clears everything: draft, photo and form.
   function handleStartOver() {
     clearDraft();
     setDraft(null);
@@ -46,11 +44,13 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
     setSaved(false);
     setSaveError(null);
     setActiveStep(0);
-    setFormKey((key) => key + 1); // кара Formik да започне с празни полета
+    setFormKey((key) => key + 1); // makes Formik start with empty fields
   }
 
+  const isLastStep = activeStep === steps.length - 1;
+
   return (
-    <Box sx={{ p: 4, maxWidth: 720, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 2, sm: 4 }, maxWidth: 720, mx: 'auto' }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Studio
       </Typography>
@@ -76,20 +76,18 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
               sx={{ minHeight: 44 }}
               onClick={handleStartOver}
             >
-              Започни отначало
+              Start over
             </Button>
           }
         >
-          Възстановихме твоята чернова. Снимката не се пази, избери я отново, ако ти е нужна.
+          We restored your draft. Photos are not kept in drafts, so choose it again if you need one.
         </Alert>
       )}
 
       {saved ? (
         <Box sx={{ display: 'grid', gap: 3 }}>
           <Alert severity="success" role="status">
-            {onSave
-              ? 'Проектът е запазен.'
-              : 'Проектът е готов. Това е демо режим: нищо не е записано в Supabase.'}
+            Your project has been saved.
           </Alert>
           <Button
             type="button"
@@ -97,7 +95,7 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
             sx={{ minHeight: 44, justifySelf: 'start' }}
             onClick={handleStartOver}
           >
-            Нов проект
+            New project
           </Button>
         </Box>
       ) : (
@@ -107,20 +105,23 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
           validate={(values) => validateStep(values, activeStep)}
           onSubmit={async (values) => {
             setSaveError(null);
-            // Снимката се изпраща само ако е изрично потвърдена.
+            if (!user) {
+              setSaveError('Please sign in to save your project.');
+              return;
+            }
+            // The photo is sent only if the user explicitly confirmed it.
             const photoToUpload = photo && photoConfirmed ? photo.file : null;
             try {
-              if (onSave) {
-                await onSave(values, photoToUpload);
-              } else {
-                console.log('Демо проект:', values, 'Снимка:', photoToUpload);
-              }
-              clearDraft(); // проектът е завършен, черновата вече не е нужна
+              await saveStudioProject(user.id, values, photoToUpload);
+              clearDraft(); // the project is saved, the draft is no longer needed
               setSaved(true);
-              setActiveStep(steps.length); // всички стъпки са "завършени"
+              setActiveStep(steps.length); // marks every step as completed
             } catch (error) {
-              console.error('Грешка при запазване на проекта:', error);
-              setSaveError('Проектът не можа да се запази. Опитай отново.');
+              setSaveError(
+                error instanceof Error
+                  ? error.message
+                  : 'We could not save your project. Please try again.',
+              );
             }
           }}
         >
@@ -153,6 +154,12 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
                 />
               )}
 
+              {isLastStep && !user && (
+                <Alert severity="info" sx={{ mt: 3 }}>
+                  Sign in to save your project. Your draft stays on this device.
+                </Alert>
+              )}
+
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
                 <Button
                   key="back"
@@ -160,10 +167,10 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
                   disabled={activeStep === 0 || isSubmitting}
                   onClick={() => setActiveStep((s) => s - 1)}
                 >
-                  Назад
+                  Back
                 </Button>
 
-                {activeStep < steps.length - 1 ? (
+                {!isLastStep ? (
                   <Button
                     key="next"
                     type="button"
@@ -180,16 +187,16 @@ export function StudioScreen({ onSave }: StudioScreenProps) {
                       }
                     }}
                   >
-                    Напред
+                    Next
                   </Button>
                 ) : (
                   <Button
                     key="save"
                     type="submit"
                     variant="contained"
-                    disabled={isSubmitting || (Boolean(photo) && !photoConfirmed)}
+                    disabled={isSubmitting || !user || (Boolean(photo) && !photoConfirmed)}
                   >
-                    {isSubmitting ? 'Запазване…' : 'Запази'}
+                    {isSubmitting ? 'Saving…' : 'Save'}
                   </Button>
                 )}
               </Box>

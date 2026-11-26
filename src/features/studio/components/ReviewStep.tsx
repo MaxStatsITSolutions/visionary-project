@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import type { PhotoSelection, StudioFormValues } from '../types';
 
-// Един ред в прегледа: етикет, стойност и бутон "Промени".
+// One row in the review: label, value and an "Edit" button.
 function ReviewRow({
   label,
   value,
@@ -40,9 +40,9 @@ function ReviewRow({
         size="small"
         onClick={onEdit}
         sx={{ minHeight: 44, flexShrink: 0 }}
-        aria-label={`Промени: ${label}`}
+        aria-label={`Edit: ${label}`}
       >
-        Промени
+        Edit
       </Button>
     </Box>
   );
@@ -66,31 +66,31 @@ export function ReviewStep({
   return (
     <Box sx={{ display: 'grid', gap: 2 }}>
       <Typography variant="h6" component="h2">
-        Преглед на проекта
+        Review your project
       </Typography>
 
       <Box>
-        <ReviewRow label="Име на проекта" value={values.title} onEdit={() => onEditStep(0)} />
+        <ReviewRow label="Project name" value={values.title} onEdit={() => onEditStep(0)} />
         <Divider />
-        <ReviewRow label="Помещение" value={values.roomType} onEdit={() => onEditStep(0)} />
+        <ReviewRow label="Room type" value={values.roomType} onEdit={() => onEditStep(0)} />
         <Divider />
-        <ReviewRow label="Стил" value={values.interiorStyle} onEdit={() => onEditStep(1)} />
+        <ReviewRow label="Style" value={values.interiorStyle} onEdit={() => onEditStep(1)} />
         <Divider />
         <ReviewRow
-          label="Бюджет"
-          value={values.budgetRange || 'Не е посочен'}
+          label="Budget"
+          value={values.budgetRange || 'Not specified'}
           onEdit={() => onEditStep(1)}
         />
         <Divider />
         <ReviewRow
-          label="Бележки"
-          value={values.notes.trim() || 'Няма бележки'}
+          label="Notes"
+          value={values.notes.trim() || 'No notes'}
           onEdit={() => onEditStep(1)}
         />
         <Divider />
         <ReviewRow
-          label="Снимка"
-          value={photo ? photo.file.name : 'Не е избрана'}
+          label="Photo"
+          value={photo ? photo.file.name : 'No photo selected'}
           onEdit={() => onEditStep(2)}
         />
       </Box>
@@ -100,7 +100,7 @@ export function ReviewStep({
           <Box
             component="img"
             src={photo.previewUrl}
-            alt="Избраната снимка на помещението"
+            alt="Selected photo of the room"
             sx={{
               width: '100%',
               maxHeight: 280,
@@ -115,7 +115,7 @@ export function ReviewStep({
                 onChange={(event) => onConfirmChange(event.target.checked)}
               />
             }
-            label="Потвърждавам, че тази снимка може да бъде качена към проекта."
+            label="I confirm this photo can be uploaded to the project."
           />
         </>
       )}
