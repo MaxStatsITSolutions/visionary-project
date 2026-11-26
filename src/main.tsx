@@ -6,7 +6,9 @@ import App from './App';
 import { store } from './store';
 import { theme } from './theme/theme';
 import './index.css';
+import { startAuthListener } from './features/auth/authListener';
 
+startAuthListener(store.dispatch);
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
