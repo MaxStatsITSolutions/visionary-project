@@ -1,3 +1,4 @@
+import { interiorStyles } from './constants';
 import type { StudioFormValues } from './types';
 
 // Which fields belong to which step (used to mark them as touched on error).
@@ -15,7 +16,10 @@ export function validateStep(values: StudioFormValues, step: number) {
     if (!values.roomType) errors.roomType = 'Choose a room type';
   }
   if (step === 1) {
-    if (!values.interiorStyle) errors.interiorStyle = 'Choose an interior style';
+    // Also catches old drafts that saved a style which is no longer offered.
+    if (!interiorStyles.some((style) => style.name === values.interiorStyle)) {
+      errors.interiorStyle = 'Choose an interior style';
+    }
   }
   return errors;
 }

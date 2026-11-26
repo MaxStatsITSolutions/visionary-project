@@ -1,17 +1,12 @@
+import { interiorStyles as siteStyles } from '../../content/styles';
 import type { StudioFormValues } from './types';
 
 export const steps = ['Details', 'Style', 'Photo', 'Review'];
 
 export const roomTypes = ['Living room', 'Bedroom', 'Kitchen', 'Bathroom', 'Office'];
 
-export const interiorStyles = [
-  { name: 'Scandinavian', description: 'Light, cozy, natural wood' },
-  { name: 'Modern', description: 'Clean lines and simple forms' },
-  { name: 'Minimalist', description: 'Few pieces, lots of space' },
-  { name: 'Classic', description: 'Elegant details and symmetry' },
-  { name: 'Industrial', description: 'Brick, metal and raw concrete' },
-  { name: 'Boho', description: 'Colorful, soft and full of plants' },
-];
+// The same six directions as the homepage (one source: src/content/styles.ts).
+export const interiorStyles = siteStyles.map((style) => ({ name: style.name, description: style.descriptor }));
 
 export const budgetRanges = [
   'Up to €2,000',

@@ -10,6 +10,7 @@ import { HomeScreen } from './screens/HomeScreen';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import AuthScreen from './screens/AuthScreen';
 import ConnectionCheckScreen from './screens/ConnectionCheckScreen';
+import { StudioScreen } from './screens/StudioScreen';
 import { layout } from './theme/tokens';
 import { IntroContext } from './motion/IntroContext';
 import { Preloader } from './motion/Preloader';
@@ -45,6 +46,13 @@ function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => vo
         <ScreenFrame>
           <AuthScreen />
           <ConnectionCheckScreen />
+        </ScreenFrame>
+      );
+    case 'studio':
+      // Project wizard (feature/studio-form): Formik + Supabase save.
+      return (
+        <ScreenFrame>
+          <StudioScreen />
         </ScreenFrame>
       );
     default:
