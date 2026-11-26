@@ -8,6 +8,7 @@ const STACK = ['React', 'TypeScript', 'Vite', 'Material UI', 'Redux Toolkit', 'S
 export default function ConnectionCheckScreen() {
   const dispatch = useAppDispatch();
   const { status, results, checkedAt } = useAppSelector((state) => state.connectionCheck);
+  const auth = useAppSelector((state) => state.auth);
   const running = status === 'running';
   const allOk = results.length > 0 && results.every((r) => r.ok);
 
@@ -28,7 +29,12 @@ export default function ConnectionCheckScreen() {
           <Chip key={name} label={name} variant="outlined" size="small" />
         ))}
       </Stack>
-
+      
+      <Typography sx={{ mb: 3 }}>
+        Redux auth state: <strong>{auth.status}</strong>
+        {auth.user && ` (${auth.user.email})`}
+      </Typography>
+      
       <Button
         variant="contained"
         size="large"
