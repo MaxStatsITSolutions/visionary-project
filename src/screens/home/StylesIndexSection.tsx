@@ -1,0 +1,189 @@
+import { useRef, useState, type PointerEvent } from 'react';
+import { Box, ButtonBase, Typography } from '@mui/material';
+import type { Navigate } from '../../types/navigation';
+import { interiorStyles, type InteriorStyle } from '../../content/styles';
+import { colors, motion } from '../../theme/tokens';
+import { Reveal } from '../../components/common/Reveal';
+import { SectionLabel } from '../../components/common/SectionLabel';
+import { InteriorImage } from '../../components/common/InteriorImage';
+import { Section } from '../../components/layout/Section';
+import { ScrollTitle } from '../../motion/ScrollTitle';
+import { useFrame } from '../../motion/useFrame';
+import { damp } from '../../motion/engine';
+import { gridSx } from '../../components/layout/grid';
+
+/** Concept photo when available, otherwise a material swatch composition. */
+function StyleVisual({ style, sizes }: { style: InteriorStyle; sizes: string }) {
+  if (style.image) return <InteriorImage name={style.image} alt="" sizes={sizes} />;
+  const [wall, floor, soft, accent] = style.swatches;
+  return (
+    <Box sx={{ width: '100%', height: '100%', display: 'grid', gridTemplateRows: '3fr 2fr', bgcolor: wall }}>
+      <Box sx={{ display: 'grid', placeItems: 'center' }}>
+        <Box sx={{ width: '38%', aspectRatio: '2 / 1', borderRadius: '40px 40px 8px 8px', bgcolor: soft, boxShadow: `inset 0 -10px 0 ${accent}` }} />
+      </Box>
+      <Box sx={{ bgcolor: floor }} />
+    </Box>
+  );
+}
+
+/**
+ * Editorial index of styles. On fine pointers a preview card trails the
+ * cursor (transform only, written to the DOM without re-rendering); on touch
+ * each row carries its own inline thumbnail instead.
+ */
+export function StylesIndexSection({ onNavigate }: { onNavigate: Navigate }) {
+  const [active, setActive] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const target = useRef({ x: 0, y: 0 });
+  const pos = useRef({ x: 0, y: 0, r: 0 });
+
+  const onMove = (e: PointerEvent) => {
+    const list = listRef.current?.getBoundingClientRect();
+    if (!list || e.pointerType !== 'mouse') return;
+    target.current = { x: e.clientX - list.left, y: e.clientY - list.top };
+  };
+
+  // The preview trails the cursor with inertia and leans into its motion.
+  useFrame(({ dt }) => {
+    const el = previewRef.current;
+    if (!el) return;
+    const p = pos.current;
+    const k = damp(8, dt);
+    const dx = (target.current.x - p.x) * k;
+    p.x += dx;
+    p.y += (target.current.y - p.y) * k;
+    p.r += (Math.max(-12, Math.min(12, dx * 0.6)) - p.r) * damp(6, dt);
+    el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) rotate(${p.r.toFixed(2)}deg)`;
+  });
+
+  return (
+    <Section labelledBy="styles-title" sx={{ pb: { xs: 14, md: 22 } }}>
+      <Box sx={{ ...gridSx, rowGap: 3, mb: { xs: 6, md: 10 }, alignItems: 'end' }}>
+        <Box sx={{ gridColumn: { xs: '1 / -1', md: '1 / span 3' }, alignSelf: 'start', pt: { md: 2 } }}>
+          <SectionLabel index="05" label="Directions" />
+        </Box>
+        <ScrollTitle id="styles-title" sx={{ gridColumn: { xs: '1 / -1', md: '4 / span 6' } }} lines={['Six directions,', 'one room.']} />
+        <Reveal sx={{ gridColumn: { xs: '1 / -1', md: '10 / -1' } }}>
+          <Typography color="text.secondary">
+            Each direction is a complete material language — palette, timber, textile and light — applied to the same space.
+          </Typography>
+        </Reveal>
+      </Box>
+
+      <Box
+        ref={listRef}
+        component="ul"
+        onPointerMove={onMove}
+        onPointerLeave={() => setActive(null)}
+        sx={{ position: 'relative', listStyle: 'none', m: 0, p: 0, borderTop: `1px solid ${colors.line}` }}
+      >
+        {interiorStyles.map((s, i) => {
+          const isActive = active === s.id;
+          const dim = active !== null && !isActive;
+          return (
+            <Box component="li" key={s.id} sx={{ borderBottom: `1px solid ${colors.line}` }}>
+              <ButtonBase
+                onPointerEnter={() => setActive(s.id)}
+                onFocus={() => setActive(s.id)}
+                onBlur={() => setActive(null)}
+                onClick={() => onNavigate('explore')}
+                data-cursor="View"
+                aria-label={`${s.name}: ${s.descriptor} Explore this direction`}
+                sx={{
+                  width: '100%',
+                  ...gridSx,
+                  alignItems: 'center',
+                  textAlign: 'left',
+                  py: { xs: 2.5, md: 3.5 },
+                  transition: `opacity ${motion.base}ms ${motion.ease}`,
+                  opacity: dim ? 0.32 : 1,
+                }}
+              >
+                <Typography variant="overline" color="text.secondary" sx={{ gridColumn: { xs: '1 / span 1', md: '1 / span 1' } }}>
+                  {String(i + 1).padStart(2, '0')}
+                </Typography>
+                <Typography
+                  variant="h3"
+                  component="span"
+                  sx={{
+                    gridColumn: { xs: '2 / span 3', sm: '2 / span 4', md: '2 / span 5' },
+                    transition: `transform ${motion.base}ms ${motion.ease}, font-style 0ms`,
+                    transform: isActive ? 'translateX(12px)' : 'none',
+                    color: isActive ? colors.copperDeep : undefined,
+                  }}
+                >
+                  {s.name}
+                </Typography>
+                <Typography color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' }, gridColumn: { sm: '6 / span 3', md: '7 / span 4' } }}>
+                  {s.descriptor}
+                </Typography>
+                <Box
+                  sx={{
+                    display: { xs: 'none', md: 'flex' },
+                    gridColumn: '11 / -1',
+                    justifyContent: 'flex-end',
+                    gap: 0.75,
+                  }}
+                >
+                  {s.swatches.map((c) => (
+                    <Box key={c} component="span" sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: c, boxShadow: `inset 0 0 0 1px ${colors.line}` }} />
+                  ))}
+                </Box>
+                {/* Touch / small screens: inline thumbnail */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    display: { xs: 'block', md: 'none' },
+                    gridColumn: { xs: '2 / -1', sm: '2 / span 4' },
+                    mt: 2,
+                    aspectRatio: '16 / 9',
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <StyleVisual style={s} sizes="(min-width: 600px) 50vw, 100vw" />
+                </Box>
+              </ButtonBase>
+            </Box>
+          );
+        })}
+
+        {/* Cursor-following preview (desktop) */}
+        <Box
+          ref={previewRef}
+          aria-hidden
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 360,
+            pointerEvents: 'none',
+            zIndex: 2,
+          }}
+        >
+          <Box
+            sx={{
+              aspectRatio: '4 / 3',
+              borderRadius: 1,
+              overflow: 'hidden',
+              boxShadow: '0 30px 60px -20px rgba(25,27,26,0.4)',
+              transition: `opacity ${motion.fast}ms ${motion.ease}, transform ${motion.base}ms ${motion.ease}`,
+              opacity: active ? 1 : 0,
+              transform: active ? 'scale(1)' : 'scale(0.6)',
+              position: 'relative',
+            }}
+          >
+            {interiorStyles.map((s) => (
+              <Box key={s.id} sx={{ position: 'absolute', inset: 0, opacity: active === s.id ? 1 : 0, transition: `opacity ${motion.fast}ms` }}>
+                <StyleVisual style={s} sizes="360px" />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Section>
+  );
+}
