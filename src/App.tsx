@@ -7,6 +7,7 @@ import { AppHeader } from './components/layout/AppHeader';
 import { AppFooter } from './components/layout/AppFooter';
 import { SkipLink } from './components/layout/SkipLink';
 import { HomeScreen } from './screens/HomeScreen';
+import { ExploreScreen } from './screens/ExploreScreen';
 import { PlaceholderScreen } from './screens/PlaceholderScreen';
 import AuthScreen from './screens/AuthScreen';
 import ConnectionCheckScreen from './screens/ConnectionCheckScreen';
@@ -48,6 +49,13 @@ function renderScreen(current: Screen, navigate: (screen: NavigableScreen) => vo
         <ScreenFrame>
           <AuthScreen />
           <ConnectionCheckScreen />
+        </ScreenFrame>
+      );
+      case 'explore':
+      // Project wizard (feature/studio-form): Formik + Supabase save.
+      return (
+        <ScreenFrame>
+          <ExploreScreen />
         </ScreenFrame>
       );
     case 'studio':
